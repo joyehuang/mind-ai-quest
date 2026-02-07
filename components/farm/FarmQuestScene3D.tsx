@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import { Clone, OrbitControls, useGLTF } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import { Box3, Mesh, Object3D, Vector3 } from "three";
 import type { FarmSample, ModelJudgment, PredictionRecord, RiceLabel } from "@/lib/farm/types";
 
@@ -275,7 +275,7 @@ function RicePlant({
   selected: boolean;
   dimmed: boolean;
   liteMode: boolean;
-  model: WheatModel;
+  model: WheatModel | null;
   position: [number, number, number];
   onHover: () => void;
   onSelect: () => void;
@@ -286,8 +286,9 @@ function RicePlant({
   const stemColor = dimmed ? "#9aaea3" : appearance.stemColor;
 
   const seed = hashId(sample.id);
-  const modelScale = clamp((appearance.stemHeight * 1.35) / model.height, 0.12, 0.34);
-  const modelOffsetY = -model.minY * modelScale;
+  const useModel = !liteMode && model !== null;
+  const modelScale = useModel ? clamp((appearance.stemHeight * 1.35) / model.height, 0.12, 0.34) : 0;
+  const modelOffsetY = useModel ? -model.minY * modelScale : 0;
   const modelRotateY = ((seed % 360) * Math.PI) / 180 + appearance.stemLean * 0.5;
   const lift = selected ? 0.03 : 0;
 
@@ -312,7 +313,7 @@ function RicePlant({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      {liteMode ? (
+      {!useModel ? (
         <>
           <mesh position={[0, 0.2, 0]} rotation={[0, 0, appearance.stemLean]}>
             <cylinderGeometry args={[0.05, 0.07, 0.42, 10]} />
@@ -334,7 +335,7 @@ function RicePlant({
           position={[0, modelOffsetY, 0]}
           rotation={[0, modelRotateY, appearance.stemLean * 0.16]}
         >
-          <Clone object={model.object} />
+          <Clone object={model!.object} />
         </group>
       )}
 
@@ -391,6 +392,147 @@ function RicePlant({
   );
 }
 
+function CameraFocusRig({ focusX }: { focusX: number }) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.position.set(focusX, 4.2, 6.7);
+  }, [camera, focusX]);
+
+  return null;
+}
+
+interface PlantLayerProps {
+  model: WheatModel | null;
+  liteMode: boolean;
+  stepIndex: number;
+  activeField: "A" | "B" | "C";
+  positionedA: PositionedSample[];
+  positionedB: PositionedSample[];
+  positionedC: PositionedSample[];
+  collectedIds: string[];
+  labels: Record<string, RiceLabel>;
+  fieldBPredictionMap: Record<string, PredictionRecord>;
+  fieldBReviews: Record<string, ModelJudgment>;
+  fieldCPredictionMap: Record<string, PredictionRecord>;
+  activeSampleId: string | null;
+  onHoverSample: (sampleId: string | null) => void;
+  onSelectSample: (sampleId: string) => void;
+}
+
+function PlantLayer({
+  model,
+  liteMode,
+  stepIndex,
+  activeField,
+  positionedA,
+  positionedB,
+  positionedC,
+  collectedIds,
+  labels,
+  fieldBPredictionMap,
+  fieldBReviews,
+  fieldCPredictionMap,
+  activeSampleId,
+  onHoverSample,
+  onSelectSample,
+}: PlantLayerProps) {
+  const showFieldAPlants = true;
+  const showFieldBPlants = stepIndex >= 2;
+  const showFieldCPlants = stepIndex >= 4;
+
+  return (
+    <>
+      {showFieldAPlants &&
+        positionedA.map((item) => {
+          const collected = collectedIds.includes(item.sample.id);
+          const label = labels[item.sample.id];
+
+          let markerColor: string | null = null;
+          if (stepIndex >= 1 && label) {
+            markerColor = markerColorForLabel(label);
+          }
+
+          return (
+            <RicePlant
+              key={item.sample.id}
+              sample={item.sample}
+              markerColor={markerColor}
+              collected={collected}
+              selected={activeSampleId === item.sample.id}
+              dimmed={activeField !== "A"}
+              liteMode={liteMode}
+              model={model}
+              position={item.position}
+              onHover={() => onHoverSample(item.sample.id)}
+              onSelect={() => onSelectSample(item.sample.id)}
+            />
+          );
+        })}
+
+      {showFieldBPlants &&
+        positionedB.map((item) => {
+          const prediction = fieldBPredictionMap[item.sample.id];
+          const review = fieldBReviews[item.sample.id];
+
+          let markerColor: string | null = null;
+          if (prediction) {
+            markerColor = markerColorForLabel(prediction.predicted);
+          }
+          if (stepIndex >= 3 && review === "model_correct") {
+            markerColor = "#4d93c9";
+          }
+          if (stepIndex >= 3 && review === "model_wrong") {
+            markerColor = "#d17b59";
+          }
+
+          return (
+            <RicePlant
+              key={item.sample.id}
+              sample={item.sample}
+              markerColor={markerColor}
+              collected={false}
+              selected={activeSampleId === item.sample.id}
+              dimmed={activeField !== "B"}
+              liteMode={liteMode}
+              model={model}
+              position={item.position}
+              onHover={() => onHoverSample(item.sample.id)}
+              onSelect={() => onSelectSample(item.sample.id)}
+            />
+          );
+        })}
+
+      {showFieldCPlants &&
+        positionedC.map((item) => {
+          const prediction = fieldCPredictionMap[item.sample.id];
+          const markerColor = prediction ? markerColorForLabel(prediction.predicted) : null;
+
+          return (
+            <RicePlant
+              key={item.sample.id}
+              sample={item.sample}
+              markerColor={markerColor}
+              collected={false}
+              selected={activeSampleId === item.sample.id}
+              dimmed={activeField !== "C"}
+              liteMode={liteMode}
+              model={model}
+              position={item.position}
+              onHover={() => onHoverSample(item.sample.id)}
+              onSelect={() => onSelectSample(item.sample.id)}
+            />
+          );
+        })}
+    </>
+  );
+}
+
+function ModelPlantLayer(props: Omit<PlantLayerProps, "model">) {
+  const wheatModel = useWheatModel();
+  return <PlantLayer {...props} model={wheatModel} />;
+}
+
 export default function FarmQuestScene3D({
   stepIndex,
   liteMode,
@@ -407,8 +549,6 @@ export default function FarmQuestScene3D({
   onHoverSample,
   onSelectSample,
 }: FarmQuestScene3DProps) {
-  const wheatModel = useWheatModel();
-
   const positionedA = useMemo(() => buildPositions(fieldASamples, "A"), [fieldASamples]);
   const positionedB = useMemo(() => buildPositions(fieldBSamples, "B"), [fieldBSamples]);
   const positionedC = useMemo(() => buildPositions(fieldCSamples, "C"), [fieldCSamples]);
@@ -419,11 +559,11 @@ export default function FarmQuestScene3D({
   }, [fieldASamples, fieldBSamples, fieldCSamples]);
 
   const fieldBPredictionMap = useMemo(
-    () => Object.fromEntries(fieldBPredictions.map((item) => [item.sample.id, item])),
+    () => Object.fromEntries(fieldBPredictions.map((item) => [item.sample.id, item])) as Record<string, PredictionRecord>,
     [fieldBPredictions],
   );
   const fieldCPredictionMap = useMemo(
-    () => Object.fromEntries(fieldCPredictions.map((item) => [item.sample.id, item])),
+    () => Object.fromEntries(fieldCPredictions.map((item) => [item.sample.id, item])) as Record<string, PredictionRecord>,
     [fieldCPredictions],
   );
 
@@ -431,33 +571,32 @@ export default function FarmQuestScene3D({
   const cameraFocusX = FIELD_LAYOUT[activeField].centerX;
   const hoveredSample = hoveredSampleId ? sampleById[hoveredSampleId] ?? null : null;
 
-  const showFieldAPlants = true;
-  const showFieldBPlants = stepIndex >= 2;
-  const showFieldCPlants = stepIndex >= 4;
-
   return (
     <div
-      className="relative h-[380px] w-full overflow-hidden rounded-2xl border border-[#d5e4dc] bg-gradient-to-b from-[#effcf6] via-[#e4f4eb] to-[#d6e9df]"
+      className="relative h-[380px] w-full overflow-hidden rounded-2xl border border-[rgba(71,213,255,0.4)] bg-[radial-gradient(circle_at_20%_15%,rgba(44,205,255,0.14),transparent_48%),radial-gradient(circle_at_82%_82%,rgba(55,255,154,0.12),transparent_48%),linear-gradient(165deg,#071328_0%,#081a34_52%,#0a2142_100%)]"
       onPointerLeave={() => onHoverSample(null)}
     >
       <Canvas
-        key={`field-focus-${activeField}-${liteMode ? "lite" : "std"}`}
-        dpr={liteMode ? [1, 1.2] : [1, 1.8]}
+        dpr={liteMode ? [1, 1.15] : [1, 1.35]}
         shadows={!liteMode}
-        camera={{ position: [cameraFocusX, 4.2, 6.7], fov: 44 }}
+        camera={{ position: [cameraFocusX, 4.2, 6.7], fov: 44, near: 0.1, far: 32 }}
+        gl={{ antialias: !liteMode, powerPreference: "high-performance" }}
       >
-        <ambientLight intensity={0.78} />
+        <CameraFocusRig focusX={cameraFocusX} />
+        <ambientLight intensity={0.68} />
         <directionalLight
           position={[6, 8, 6]}
-          intensity={1.08}
+          intensity={0.92}
+          color="#d9f5ff"
           castShadow={!liteMode}
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
+          shadow-mapSize-width={512}
+          shadow-mapSize-height={512}
         />
+        <directionalLight position={[-5, 4, -3]} intensity={0.45} color="#49ddff" />
 
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]} receiveShadow={!liteMode}>
           <planeGeometry args={[12, 5.2]} />
-          <meshStandardMaterial color="#dbeede" />
+          <meshStandardMaterial color="#10314b" roughness={0.92} />
         </mesh>
 
         {(["A", "B", "C"] as const).map((field) => {
@@ -469,95 +608,72 @@ export default function FarmQuestScene3D({
             <mesh key={field} position={[layout.centerX, -0.02, 0]} receiveShadow={!liteMode}>
               <boxGeometry args={[layout.width, 0.05, layout.depth]} />
               <meshStandardMaterial
-                color={active ? "#b9dfc6" : "#cfddd5"}
+                color={active ? "#1f4f66" : "#16394f"}
                 transparent
-                opacity={visible ? 1 : 0.38}
+                opacity={visible ? 0.95 : 0.35}
               />
             </mesh>
           );
         })}
 
-        {showFieldAPlants &&
-          positionedA.map((item) => {
-            const collected = collectedIds.includes(item.sample.id);
-            const label = labels[item.sample.id];
-
-            let markerColor: string | null = null;
-            if (stepIndex >= 1 && label) {
-              markerColor = markerColorForLabel(label);
-            }
-
-            return (
-              <RicePlant
-                key={item.sample.id}
-                sample={item.sample}
-                markerColor={markerColor}
-                collected={collected}
-                selected={activeSampleId === item.sample.id}
-                dimmed={activeField !== "A"}
-                liteMode={liteMode}
-                model={wheatModel}
-                position={item.position}
-                onHover={() => onHoverSample(item.sample.id)}
-                onSelect={() => onSelectSample(item.sample.id)}
+        {liteMode ? (
+          <PlantLayer
+            model={null}
+            liteMode
+            stepIndex={stepIndex}
+            activeField={activeField}
+            positionedA={positionedA}
+            positionedB={positionedB}
+            positionedC={positionedC}
+            collectedIds={collectedIds}
+            labels={labels}
+            fieldBPredictionMap={fieldBPredictionMap}
+            fieldBReviews={fieldBReviews}
+            fieldCPredictionMap={fieldCPredictionMap}
+            activeSampleId={activeSampleId}
+            onHoverSample={onHoverSample}
+            onSelectSample={onSelectSample}
+          />
+        ) : (
+          <Suspense
+            fallback={
+              <PlantLayer
+                model={null}
+                liteMode
+                stepIndex={stepIndex}
+                activeField={activeField}
+                positionedA={positionedA}
+                positionedB={positionedB}
+                positionedC={positionedC}
+                collectedIds={collectedIds}
+                labels={labels}
+                fieldBPredictionMap={fieldBPredictionMap}
+                fieldBReviews={fieldBReviews}
+                fieldCPredictionMap={fieldCPredictionMap}
+                activeSampleId={activeSampleId}
+                onHoverSample={onHoverSample}
+                onSelectSample={onSelectSample}
               />
-            );
-          })}
-
-        {showFieldBPlants &&
-          positionedB.map((item) => {
-            const prediction = fieldBPredictionMap[item.sample.id];
-            const review = fieldBReviews[item.sample.id];
-
-            let markerColor: string | null = null;
-            if (prediction) {
-              markerColor = markerColorForLabel(prediction.predicted);
             }
-            if (stepIndex >= 3 && review === "model_correct") {
-              markerColor = "#4d93c9";
-            }
-            if (stepIndex >= 3 && review === "model_wrong") {
-              markerColor = "#d17b59";
-            }
-
-            return (
-              <RicePlant
-                key={item.sample.id}
-                sample={item.sample}
-                markerColor={markerColor}
-                collected={false}
-                selected={activeSampleId === item.sample.id}
-                dimmed={activeField !== "B"}
-                liteMode={liteMode}
-                model={wheatModel}
-                position={item.position}
-                onHover={() => onHoverSample(item.sample.id)}
-                onSelect={() => onSelectSample(item.sample.id)}
-              />
-            );
-          })}
-
-        {showFieldCPlants &&
-          positionedC.map((item) => {
-            const prediction = fieldCPredictionMap[item.sample.id];
-            const markerColor = prediction ? markerColorForLabel(prediction.predicted) : null;
-
-            return (
-              <RicePlant
-                key={item.sample.id}
-                sample={item.sample}
-                markerColor={markerColor}
-                collected={false}
-                selected={activeSampleId === item.sample.id}
-                dimmed={activeField !== "C"}
-                liteMode={liteMode}
-                model={wheatModel}
-                position={item.position}
-                onHover={() => onHoverSample(item.sample.id)}
-                onSelect={() => onSelectSample(item.sample.id)}
-              />
-            );
-          })}
+          >
+            <ModelPlantLayer
+              liteMode={false}
+              stepIndex={stepIndex}
+              activeField={activeField}
+              positionedA={positionedA}
+              positionedB={positionedB}
+              positionedC={positionedC}
+              collectedIds={collectedIds}
+              labels={labels}
+              fieldBPredictionMap={fieldBPredictionMap}
+              fieldBReviews={fieldBReviews}
+              fieldCPredictionMap={fieldCPredictionMap}
+              activeSampleId={activeSampleId}
+              onHoverSample={onHoverSample}
+              onSelectSample={onSelectSample}
+            />
+          </Suspense>
+        )}
 
         <OrbitControls
           enablePan={false}
@@ -574,8 +690,8 @@ export default function FarmQuestScene3D({
         <span
           className={`rounded-full border px-2 py-0.5 ${
             activeField === "A"
-              ? "border-[#83be9c] bg-[#ecfff4] text-[#28573f]"
-              : "border-[#d0ddd6] bg-white text-[#637a6d]"
+              ? "border-[rgba(91,224,255,0.6)] bg-[rgba(9,50,83,0.86)] text-[#c5f3ff]"
+              : "border-[rgba(73,136,169,0.45)] bg-[rgba(8,25,46,0.8)] text-[#8bbfd8]"
           }`}
         >
           第一块田
@@ -583,8 +699,8 @@ export default function FarmQuestScene3D({
         <span
           className={`rounded-full border px-2 py-0.5 ${
             activeField === "B"
-              ? "border-[#83be9c] bg-[#ecfff4] text-[#28573f]"
-              : "border-[#d0ddd6] bg-white text-[#637a6d]"
+              ? "border-[rgba(91,224,255,0.6)] bg-[rgba(9,50,83,0.86)] text-[#c5f3ff]"
+              : "border-[rgba(73,136,169,0.45)] bg-[rgba(8,25,46,0.8)] text-[#8bbfd8]"
           }`}
         >
           第二块田
@@ -592,27 +708,27 @@ export default function FarmQuestScene3D({
         <span
           className={`rounded-full border px-2 py-0.5 ${
             activeField === "C"
-              ? "border-[#83be9c] bg-[#ecfff4] text-[#28573f]"
-              : "border-[#d0ddd6] bg-white text-[#637a6d]"
+              ? "border-[rgba(91,224,255,0.6)] bg-[rgba(9,50,83,0.86)] text-[#c5f3ff]"
+              : "border-[rgba(73,136,169,0.45)] bg-[rgba(8,25,46,0.8)] text-[#8bbfd8]"
           }`}
         >
           第三块田
         </span>
       </div>
 
-      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-[#c6dacf] bg-[rgba(255,255,255,0.86)] px-3 py-1 text-xs text-[#446355]">
+      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-[rgba(84,224,255,0.52)] bg-[rgba(7,25,45,0.9)] px-3 py-1 text-xs text-[#b4e8ff]">
         {liteMode ? "轻量模式" : "标准模式"}
       </div>
 
       {hoveredSample && (
-        <div className="pointer-events-none absolute bottom-3 right-3 min-w-[260px] rounded-lg border border-[#c9ddd0] bg-[rgba(255,255,255,0.96)] px-3 py-2 text-xs text-[#36584a] shadow-lg">
-          <p className="font-semibold">{hoveredSample.name}</p>
+        <div className="pointer-events-none absolute bottom-3 right-3 min-w-[260px] rounded-lg border border-[rgba(91,224,255,0.52)] bg-[rgba(5,21,41,0.94)] px-3 py-2 text-xs text-[#bce9ff] shadow-[0_10px_24px_rgba(4,13,30,0.55)]">
+          <p className="font-semibold text-[#d8f6ff]">{hoveredSample.name}</p>
           <p className="mt-1">叶子：{hoveredSample.profile.leaf}</p>
           <p>稻秆：{hoveredSample.profile.stem}</p>
           <p>小稻秆：{hoveredSample.profile.tiller}</p>
           <p>虫害：{hoveredSample.profile.pest}</p>
           <p>稻穗：{hoveredSample.profile.panicle}</p>
-          <p className="mt-1 font-semibold text-[#2c5e44]">
+          <p className="mt-1 font-semibold text-[#8fe8ff]">
             {collectedIds.includes(hoveredSample.id) ? "点击可移除训练集" : "点击可加入训练集"}
           </p>
         </div>
@@ -620,5 +736,3 @@ export default function FarmQuestScene3D({
     </div>
   );
 }
-
-useGLTF.preload(WHEAT_MODEL_PATH);

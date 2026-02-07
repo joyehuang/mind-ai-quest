@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { GameButton, GamePanel, GameProgress } from "@/components/ui/GameUI";
 import {
   FARM_STEPS,
   FIELD_A_SAMPLES,
@@ -67,7 +68,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
   const [finalResult, setFinalResult] = useState<FinalSimulationResult | null>(null);
   const [collectPopup, setCollectPopup] = useState<CollectPopupState | null>(null);
 
-  const [liteMode, setLiteMode] = useState(false);
+  const [liteMode, setLiteMode] = useState(true);
   const hoverLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const collectPopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -77,10 +78,17 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     }
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const lowCoreDevice = typeof navigator !== "undefined" && navigator.hardwareConcurrency <= 4;
+    const lowCoreDevice = typeof navigator !== "undefined" && navigator.hardwareConcurrency <= 6;
+    const connection = typeof navigator !== "undefined" ? (navigator as Navigator & {
+      connection?: { effectiveType?: string; saveData?: boolean };
+    }).connection : undefined;
+    const slowNetwork = connection?.effectiveType
+      ? ["slow-2g", "2g", "3g"].includes(connection.effectiveType)
+      : false;
+    const saveDataMode = connection?.saveData ?? false;
 
     const frame = window.requestAnimationFrame(() => {
-      setLiteMode(reducedMotion || lowCoreDevice);
+      setLiteMode(reducedMotion || lowCoreDevice || slowNetwork || saveDataMode);
     });
 
     return () => window.cancelAnimationFrame(frame);
@@ -367,31 +375,26 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
               : "调节记忆药水、层数和学习速度，再运行最终测试。";
 
   return (
-    <section className="space-y-5">
-      <div className="rounded-3xl border border-[#d6e5dc] bg-[rgba(255,255,255,0.92)] p-5">
+    <section className="game-quest farm-quest space-y-5">
+      <GamePanel variant="strong" glow className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-[#214031]">主题关卡1：保护我们的稻田</h2>
-          <span className="text-sm text-[#4f6659]">
+          <h2 className="font-display text-lg font-semibold text-[#c7f4ff]">主题关卡1：保护我们的稻田</h2>
+          <span className="text-sm text-[#8ecfe9]">
             第 {step + 1} 步 / 共 {FARM_STEPS.length} 步
           </span>
         </div>
 
-        <div className="mt-3 h-3 rounded-full bg-[#deebe4] p-[2px]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[#2a8d5d] to-[#86d09f]"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <GameProgress value={progress} className="mt-3" />
 
         <div className="mt-4 grid gap-2 md:grid-cols-5">
           {FARM_STEPS.map((item, index) => (
             <button
               key={item}
               type="button"
-              className={`rounded-xl border px-2 py-2 text-xs ${
+              className={`game-button rounded-xl border px-2 py-2 text-xs ${
                 index <= step
-                  ? "border-[#8dbfa2] bg-[#eaf7ef] text-[#1f5f3e]"
-                  : "border-[#d9e2dc] bg-[#f7faf8] text-[#60766a]"
+                  ? "border-[rgba(85,233,255,0.55)] bg-[rgba(10,46,76,0.9)] text-[#c9f3ff]"
+                  : "border-[rgba(66,136,170,0.42)] bg-[rgba(8,22,40,0.82)] text-[#78b2d1]"
               }`}
               disabled={index > step}
               onClick={() => index <= step && setStep(index)}
@@ -400,40 +403,42 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
             </button>
           ))}
         </div>
-      </div>
+      </GamePanel>
 
       <div className="grid gap-5 xl:grid-cols-[310px_1fr]">
-        <aside className="rounded-3xl border border-[#d5e4dc] bg-[rgba(255,255,255,0.92)] p-5">
-          <div className="rounded-2xl border border-[#cde0d3] bg-[#f4fbf7] p-4">
-            <p className="text-xs text-[#587264]">AI 小助手</p>
-            <p className="mt-1 text-lg font-semibold text-[#234534]">{playerName}</p>
-            <p className="text-xs text-[#5a7366]">{playerStyle}</p>
+        <aside className="game-left-panel rounded-3xl p-5">
+          <div className="game-surface-card rounded-2xl p-4">
+            <p className="text-xs text-[#88d8f2]">AI 小助手</p>
+            <p className="mt-1 text-lg font-semibold text-[#d5f5ff]">{playerName}</p>
+            <p className="text-xs text-[#8bbfd8]">{playerStyle}</p>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-[#d4e2db] bg-[#fafdfb] p-4">
-            <p className="text-xs uppercase tracking-wide text-[#6a7f73]">实时提示</p>
-            <p className="mt-2 text-sm leading-6 text-[#2f4d3e]">{speech}</p>
+          <div className="game-surface-soft mt-4 rounded-2xl p-4">
+            <p className="text-xs uppercase tracking-wide text-[#8ed6f0]">实时提示</p>
+            <p className="mt-2 text-sm leading-6 text-[#d7f5ff]">{speech}</p>
           </div>
 
           <div className="mt-4 space-y-2">
-            <button
+            <GameButton
               type="button"
-              className="w-full rounded-xl border border-[#cfdcd4] bg-white px-3 py-2 text-sm text-[#3f5d4f]"
+              variant="primary"
+              className="w-full px-3 py-2 text-sm"
               onClick={() => setLiteMode((current) => !current)}
             >
               切换渲染模式：{liteMode ? "轻量" : "标准"}
-            </button>
-            <button
+            </GameButton>
+            <GameButton
               type="button"
-              className="w-full rounded-xl border border-[#cfdcd4] bg-white px-3 py-2 text-sm text-[#3f5d4f]"
+              variant="secondary"
+              className="w-full px-3 py-2 text-sm"
               onClick={resetQuest}
             >
               重置关卡1
-            </button>
+            </GameButton>
           </div>
         </aside>
 
-        <main className="space-y-4 rounded-3xl border border-[#d5e4dc] bg-[rgba(255,255,255,0.94)] p-5">
+        <main className="game-main-panel space-y-4 rounded-3xl p-5">
           <FarmQuestScene3D
             stepIndex={step}
             liteMode={liteMode}
@@ -516,49 +521,51 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
+        <GameButton
           type="button"
-          className="rounded-xl border border-[#cddbd3] bg-[rgba(255,255,255,0.85)] px-4 py-2 text-sm text-[#3f5c4d]"
+          variant="secondary"
+          className="rounded-xl px-4 py-2 text-sm"
           onClick={previousStep}
         >
           {step === 0 ? "返回关卡选择" : "上一步"}
-        </button>
+        </GameButton>
 
-        <button
+        <GameButton
           type="button"
-          className="rounded-xl bg-[#1f8a5b] px-5 py-2 text-sm font-semibold text-white disabled:bg-[#9abda9]"
+          variant="success"
+          className="rounded-xl px-5 py-2 text-sm disabled:bg-[#6f8a9f]"
           disabled={!canNext}
           onClick={nextStep}
         >
           {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
-        </button>
+        </GameButton>
       </div>
 
-      <p className="text-xs text-[#5d7368]">
+      <p className="text-xs text-[#8ec4df]">
         数据规模：第一块田候选 {TRAINING_POOL_SIZE}（训练集选取 {TRAINING_TARGET}），第二块田 {SECOND_FIELD_TARGET}，第三块田 {THIRD_FIELD_TARGET}。
       </p>
 
       {collectPopup && step === 0 && (
-        <div className="pointer-events-none fixed left-1/2 top-1/2 z-[9999] w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#cde2d5] bg-[rgba(255,255,255,0.97)] p-4 shadow-[0_16px_38px_rgba(18,62,38,0.18)] backdrop-blur-sm">
+        <div className="pointer-events-none fixed left-1/2 top-1/2 z-[9999] w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[rgba(93,227,255,0.5)] bg-[rgba(6,20,40,0.95)] p-4 shadow-[0_18px_42px_rgba(9,30,68,0.55)] backdrop-blur-sm">
           <p
             className={`text-sm font-semibold ${
               collectPopup.action === "added"
-                ? "text-[#1f7a4d]"
+                ? "text-[#83ffd0]"
                 : collectPopup.action === "removed"
-                  ? "text-[#8c4d2b]"
-                  : "text-[#8a5b1f]"
+                  ? "text-[#ffd18d]"
+                  : "text-[#ffc47d]"
             }`}
           >
             {collectPopup.action === "added" && "已加入训练集"}
             {collectPopup.action === "removed" && "已移出训练集"}
             {collectPopup.action === "full" && "训练集已满（10/10）"}
           </p>
-          <p className="mt-1 text-xs font-semibold text-[#2e5342]">{collectPopup.sample.name}</p>
-          <p className="mt-1 text-xs text-[#496356]">叶子：{collectPopup.sample.profile.leaf}</p>
-          <p className="text-xs text-[#496356]">稻秆：{collectPopup.sample.profile.stem}</p>
-          <p className="text-xs text-[#496356]">小稻秆：{collectPopup.sample.profile.tiller}</p>
-          <p className="text-xs text-[#496356]">虫害：{collectPopup.sample.profile.pest}</p>
-          <p className="text-xs text-[#496356]">稻穗：{collectPopup.sample.profile.panicle}</p>
+          <p className="mt-1 text-xs font-semibold text-[#d3f4ff]">{collectPopup.sample.name}</p>
+          <p className="mt-1 text-xs text-[#a3d9ef]">叶子：{collectPopup.sample.profile.leaf}</p>
+          <p className="text-xs text-[#a3d9ef]">稻秆：{collectPopup.sample.profile.stem}</p>
+          <p className="text-xs text-[#a3d9ef]">小稻秆：{collectPopup.sample.profile.tiller}</p>
+          <p className="text-xs text-[#a3d9ef]">虫害：{collectPopup.sample.profile.pest}</p>
+          <p className="text-xs text-[#a3d9ef]">稻穗：{collectPopup.sample.profile.panicle}</p>
         </div>
       )}
     </section>

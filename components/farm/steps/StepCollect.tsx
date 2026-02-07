@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import { GameBadge, GamePanel, GameProgress } from "@/components/ui/GameUI";
 import type { FarmSample } from "@/lib/farm/types";
 
 interface StepCollectProps {
@@ -25,69 +26,67 @@ export default function StepCollect({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#9dcbaf] bg-[#ecfff2] p-4">
-        <p className="text-sm font-medium text-[#255a3c]">第一步：第一块田收集数据（不显示标签）</p>
-        <p className="mt-1 text-lg font-semibold text-[#1f4f34]">
+      <GamePanel variant="soft" className="p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-[#93def7]">第一步：第一块田收集数据（不显示标签）</p>
+          <GameBadge variant="info">DATA GATHERING</GameBadge>
+        </div>
+        <p className="mt-1 text-lg font-semibold text-[#d7f6ff]">
           候选 {poolSize} 株，已收集 {collectedIds.length}/{target}
         </p>
-        <div className="mt-3 h-3 rounded-full bg-[#d0ead9] p-[2px]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[#2b8f60] to-[#8cd9a4]"
-            style={{ width: `${Math.min(progress, 100)}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-[#3f6952]">
+        <GameProgress value={Math.min(progress, 100)} className="mt-3" />
+        <p className="mt-2 text-xs text-[#8dc4dd]">
           请从 {poolSize} 个候选样本中挑选 {target} 个作为训练集。训练集质量会影响后续测试准确率。
         </p>
-        <p className="mt-1 text-xs text-[#3f6952]">
+        <p className="mt-1 text-xs text-[#8dc4dd]">
           当前训练集质量（覆盖度+平衡度）：{Math.round(trainingQuality * 100)}%
         </p>
         {collectMessage && (
-          <p className="mt-2 rounded-lg border border-[#efc595] bg-[#fff5e8] px-2 py-1 text-xs text-[#8c5e24]">
+          <p className="mt-2 rounded-lg border border-[rgba(255,195,106,0.52)] bg-[rgba(54,37,12,0.78)] px-2 py-1 text-xs text-[#ffdba8]">
             {collectMessage}
           </p>
         )}
-      </div>
+      </GamePanel>
 
-      <div className="rounded-2xl border border-[#d5e6dd] bg-white p-4">
-        <p className="text-sm font-semibold text-[#234536]">3D 交互说明</p>
-        <p className="mt-2 text-sm text-[#557064]">
+      <GamePanel variant="soft" className="p-4">
+        <p className="text-sm font-semibold text-[#a5e7ff]">3D 交互说明</p>
+        <p className="mt-2 text-sm text-[#9acbe2]">
           直接在上方 3D 第一块田中点击稻株来加入/移除训练集，鼠标悬停即可查看特征信息。
         </p>
         {hoveredSample ? (
-          <div className="mt-3 rounded-xl border border-[#c9ded0] bg-[#f5fcf8] p-3 text-sm text-[#355646]">
-            <p className="font-semibold text-[#244636]">{hoveredSample.name}</p>
+          <div className="game-surface-soft mt-3 rounded-xl p-3 text-sm text-[#b8e9ff]">
+            <p className="font-semibold text-[#d5f6ff]">{hoveredSample.name}</p>
             <p className="mt-1">叶子：{hoveredSample.profile.leaf}</p>
             <p>稻秆：{hoveredSample.profile.stem}</p>
             <p>小稻秆数量：{hoveredSample.profile.tiller}</p>
             <p>虫害：{hoveredSample.profile.pest}</p>
             <p>稻穗：{hoveredSample.profile.panicle}</p>
-            <p className="mt-2 text-xs font-semibold text-[#2a5a41]">
+            <p className="mt-2 text-xs font-semibold text-[#8ee5ff]">
               当前状态：{collectedIds.includes(hoveredSample.id) ? "已加入训练集（再次点击可移除）" : "未加入训练集（点击可加入）"}
             </p>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-[#557064]">把鼠标放在 3D 稻株上，会显示该稻种的完整特征描述。</p>
+          <p className="mt-3 text-sm text-[#9acbe2]">把鼠标放在 3D 稻株上，会显示该稻种的完整特征描述。</p>
         )}
-      </div>
+      </GamePanel>
 
-      <div className="rounded-2xl border border-[#d5e6dd] bg-white p-4">
-        <p className="text-sm font-semibold text-[#234536]">已选训练集（来自 3D 点击）</p>
+      <GamePanel variant="soft" className="p-4">
+        <p className="text-sm font-semibold text-[#a5e7ff]">已选训练集（来自 3D 点击）</p>
         {collectedSamples.length > 0 ? (
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {collectedSamples.map((sample) => (
               <div
                 key={sample.id}
-                className="rounded-xl border border-[#cfe1d7] bg-[#f7fcf9] px-3 py-2 text-sm text-[#2f4f40]"
+                className="game-surface-soft rounded-xl px-3 py-2 text-sm text-[#c7f0ff]"
               >
                 {sample.name}
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-sm text-[#567065]">还没有选中样本，请在上方 3D 稻田中点击稻株开始收集。</p>
+          <p className="mt-3 text-sm text-[#9acbe2]">还没有选中样本，请在上方 3D 稻田中点击稻株开始收集。</p>
         )}
-      </div>
+      </GamePanel>
     </div>
   );
 }

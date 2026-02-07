@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo } from "react";
 import type { LossPoint } from "@/lib/farm/types";
@@ -57,13 +57,13 @@ export default function LossChart({ points }: LossChartProps) {
   }, [points]);
 
   return (
-    <div className="rounded-2xl border border-[#d8e7de] bg-white p-4">
-      <div className="mb-3 flex flex-wrap gap-4 text-xs text-[#38584a]">
+    <div className="rounded-2xl border border-[rgba(69,199,255,0.34)] bg-[rgba(7,23,43,0.88)] p-4">
+      <div className="mb-3 flex flex-wrap gap-4 text-xs text-[#9acfe5]">
         <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-6 rounded-full bg-[#2a8f62]" /> 训练集 Loss
+          <span className="h-2 w-6 rounded-full bg-[#31d2ff]" /> 训练集 Loss
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-6 rounded-full bg-[#cf5a3d]" /> 测试集 Loss
+          <span className="h-2 w-6 rounded-full bg-[#ffd166]" /> 测试集 Loss
         </span>
       </div>
 
@@ -78,8 +78,8 @@ export default function LossChart({ points }: LossChartProps) {
           y={PADDING.top}
           width={CHART_WIDTH - PADDING.left - PADDING.right}
           height={CHART_HEIGHT - PADDING.top - PADDING.bottom}
-          fill="#f7fcf9"
-          stroke="#d9e7de"
+          fill="#071b33"
+          stroke="rgba(74,193,244,0.35)"
           rx={12}
         />
 
@@ -93,10 +93,10 @@ export default function LossChart({ points }: LossChartProps) {
                 y1={y}
                 x2={CHART_WIDTH - PADDING.right}
                 y2={y}
-                stroke="#e4eee8"
+                stroke="rgba(83,173,219,0.25)"
                 strokeDasharray="5 5"
               />
-              <text x={10} y={y + 4} fontSize="11" fill="#597165">
+              <text x={10} y={y + 4} fontSize="11" fill="#88cbe5">
                 {tick.toFixed(2)}
               </text>
             </g>
@@ -105,15 +105,15 @@ export default function LossChart({ points }: LossChartProps) {
 
         {points.length > 0 && (
           <>
-            <path d={trainPath} fill="none" stroke="#2a8f62" strokeWidth="3" strokeLinecap="round" />
-            <path d={testPath} fill="none" stroke="#cf5a3d" strokeWidth="3" strokeLinecap="round" />
+            <path d={trainPath} fill="none" stroke="#31d2ff" strokeWidth="3" strokeLinecap="round" />
+            <path d={testPath} fill="none" stroke="#ffd166" strokeWidth="3" strokeLinecap="round" />
           </>
         )}
 
-        <text x={CHART_WIDTH / 2 - 45} y={CHART_HEIGHT - 8} fontSize="12" fill="#5a7165">
+        <text x={CHART_WIDTH / 2 - 45} y={CHART_HEIGHT - 8} fontSize="12" fill="#95cfe8">
           训练轮次 Epoch
         </text>
-        <text x={8} y={16} fontSize="12" fill="#5a7165">
+        <text x={8} y={16} fontSize="12" fill="#95cfe8">
           Loss
         </text>
       </svg>

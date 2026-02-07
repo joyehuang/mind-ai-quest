@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import { Orbitron, Rajdhani } from "next/font/google";
 import "./globals.css";
 
-const bodyFont = IBM_Plex_Sans({
+const bodyFont = Rajdhani({
   variable: "--font-body",
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
-const displayFont = Space_Grotesk({
+const displayFont = Orbitron({
   variable: "--font-display",
-  weight: ["500", "700"],
+  weight: ["500", "700", "800"],
   subsets: ["latin"],
 });
 
