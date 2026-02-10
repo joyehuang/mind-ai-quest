@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Xiao Dang Jia (ModelScope Studio Deployment)
 
-## Getting Started
+This repository is configured for ModelScope Studio deployment with a minimal Gradio app entrypoint.
 
-First, run the development server:
+## Current Runtime
+
+- Entry file: `app.py`
+- Host: `0.0.0.0`
+- Port: `7860`
+- Container deploy config: `ms_deploy.json`
+- Docker image build file: `Dockerfile`
+- Python dependencies: `requirements.txt`
+
+## Environment Variable
+
+This app reads API key from environment variable:
+
+- `xxx_KEY`
+
+Example:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+export xxx_KEY="your_api_key"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+On Windows PowerShell:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+$env:xxx_KEY = "your_api_key"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Local Run
 
-## Learn More
+Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pip install -r requirements.txt
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Run:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+python app.py
+```
 
-## Deploy on Vercel
+Then open `http://127.0.0.1:7860`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy to ModelScope Studio
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Required files already included:
+
+- `app.py`
+- `Dockerfile`
+- `requirements.txt`
+- `ms_deploy.json`
+
+`ms_deploy.json` is set to:
+
+```json
+{
+  "$schema": "https://modelscope.cn/api/v1/studios/deploy_schema.json",
+  "sdk_type": "docker",
+  "resource_configuration": "platform/2v-cpu-16g-mem",
+  "port": 7860
+}
+```
+
+## Common Issue
+
+If startup fails with:
+
+`ModuleNotFoundError: No module named 'requests'`
+
+make sure `requirements.txt` contains:
+
+- `requests>=2.31.0,<3.0.0`
