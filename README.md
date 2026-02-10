@@ -1,25 +1,21 @@
 ---
-# 详细文档见https://modelscope.cn/docs/%E5%88%9B%E7%A9%BA%E9%97%B4%E5%8D%A1%E7%89%87
-domain: #领域：cv/nlp/audio/multi-modal/AutoML
-# - cv
-tags: #自定义标签
--
-datasets: #关联数据集
-  evaluation:
-  #- iic/ICDAR13_HCTR_Dataset
-  test:
-  #- iic/MTWI
-  train:
-  #- iic/SIBR
-models: #关联模型
-#- iic/ofa_ocr-recognition_general_base_zh
-
-## 启动文件(若SDK为Gradio/Streamlit，默认为app.py, 若为Static HTML, 默认为index.html)
-# deployspec:
-#   entry_file: app.py
+domain: multi-modal
+tags:
+  - gradio
 license: Apache License 2.0
 ---
-#### Clone with HTTP
+
+## AI Xiao Dang Jia
+
+### Runtime
+- Host: `0.0.0.0`
+- Port: `7860`
+
+### Environment Variables
+- `xxx_KEY`: API key loaded from environment at runtime.
+
+### Local Start
 ```bash
- git clone https://www.modelscope.cn/studios/Bettybetty/mind-ai.git
+pip install -r requirements.txt
+python app.py
 ```
