@@ -2,6 +2,7 @@
 
 import { Clone, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Mesh, Object3D, Vector3 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -66,36 +67,52 @@ const ASSET_BASE_URL = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.replace(/\/$/, ""
 const WHEAT_MODEL_PATHS = ASSET_BASE_URL
   ? [`${ASSET_BASE_URL}/models/wheet.glb`, `${ASSET_BASE_URL}/models/wheat.glb`, "/models/wheet.glb", "/models/wheat.glb"]
   : ["/models/wheet.glb", "/models/wheat.glb"];
+const FARM_BG_IMAGE_PATHS = ASSET_BASE_URL
+  ? [
+      `${ASSET_BASE_URL}/images/game-bg`,
+      `${ASSET_BASE_URL}/images/game-bg.png`,
+      `${ASSET_BASE_URL}/images/game-bg.jpg`,
+      `${ASSET_BASE_URL}/images/game-bg.jpeg`,
+      `${ASSET_BASE_URL}/images/game-bg.webp`,
+      "/images/game-bg",
+      "/images/game-bg.png",
+      "/images/game-bg.jpg",
+      "/images/game-bg.jpeg",
+      "/images/game-bg.webp",
+    ]
+  : ["/images/game-bg", "/images/game-bg.png", "/images/game-bg.jpg", "/images/game-bg.jpeg", "/images/game-bg.webp"];
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
   A: {
-    centerX: -3.2,
-    width: 3.2,
+    centerX: -2.8,
+    width: 2.9,
     depth: 2.9,
     columns: 5,
-    spacingX: 0.62,
+    spacingX: 0.56,
     spacingZ: 0.62,
     startZ: -1.05,
   },
   B: {
-    centerX: 0,
-    width: 2.6,
+    centerX: -0.1,
+    width: 2.3,
     depth: 2.4,
     columns: 4,
-    spacingX: 0.62,
+    spacingX: 0.56,
     spacingZ: 0.62,
     startZ: -0.85,
   },
   C: {
-    centerX: 3.2,
-    width: 2.6,
+    centerX: 2.6,
+    width: 2.3,
     depth: 2.4,
     columns: 4,
-    spacingX: 0.62,
+    spacingX: 0.56,
     spacingZ: 0.62,
     startZ: -0.85,
   },
 };
+const FIELD_RENDER_SCALE = 0.86;
+const PLANT_SCALE_FACTOR = 2;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -362,7 +379,7 @@ function RicePlant({
   const lift = selected ? 0.03 : 0;
 
   return (
-    <group position={[position[0], position[1] + lift, position[2]]}>
+    <group position={[position[0], position[1] + lift, position[2]]} scale={[PLANT_SCALE_FACTOR, PLANT_SCALE_FACTOR, PLANT_SCALE_FACTOR]}>
       <mesh
         position={[0, 0.46, 0]}
         onPointerEnter={(event) => {
@@ -501,10 +518,13 @@ export default function FarmQuestScene3D({
   );
 
   const activeField = stepIndex <= 1 ? "A" : stepIndex <= 3 ? "B" : "C";
-  const cameraFocusX = FIELD_LAYOUT[activeField].centerX;
+  const cameraFocusX = FIELD_LAYOUT[activeField].centerX * FIELD_RENDER_SCALE;
   const hoveredSample = hoveredSampleId ? sampleById[hoveredSampleId] ?? null : null;
   const enableDetailedModel = !liteMode;
   const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel(WHEAT_MODEL_PATHS);
+  const [backgroundImageIndex, setBackgroundImageIndex] = useState(0);
+  const backgroundImageSrc =
+    FARM_BG_IMAGE_PATHS[Math.min(backgroundImageIndex, FARM_BG_IMAGE_PATHS.length - 1)] ?? FARM_BG_IMAGE_PATHS[0];
 
   const showFieldAPlants = true;
   const showFieldBPlants = stepIndex >= 2;
@@ -599,7 +619,7 @@ export default function FarmQuestScene3D({
   }
 
   const baseClass = immersive
-    ? "relative h-full w-full overflow-hidden bg-gradient-to-b from-[#1a2516] via-[#26341f] to-[#1f2a18]"
+    ? "relative h-full w-full overflow-hidden bg-transparent"
     : "relative h-[380px] w-full overflow-hidden rounded-2xl border border-[#d7d5c4] bg-gradient-to-b from-[#f4f3e8] via-[#ece8d8] to-[#e0d8bf]";
 
   return (
@@ -607,11 +627,25 @@ export default function FarmQuestScene3D({
       className={`${baseClass}${className ? ` ${className}` : ""}`}
       onPointerLeave={() => onHoverSample(null)}
     >
+      <Image
+        src={backgroundImageSrc}
+        alt=""
+        fill
+        sizes="100vw"
+        priority
+        className="pointer-events-none absolute inset-0 object-cover"
+        onError={() =>
+          setBackgroundImageIndex((current) =>
+            current < FARM_BG_IMAGE_PATHS.length - 1 ? current + 1 : current,
+          )
+        }
+      />
+
       <Canvas
         key={`field-focus-${activeField}-${liteMode ? "lite" : "std"}`}
         dpr={liteMode ? [1, 1.2] : [1, 1.8]}
         shadows={!liteMode}
-        gl={{ antialias: !liteMode, powerPreference: "high-performance" }}
+        gl={{ antialias: !liteMode, powerPreference: "high-performance", alpha: true }}
         camera={{ position: [cameraFocusX, 4.2, 6.7], fov: 44, near: 0.2, far: 40 }}
       >
         <ambientLight intensity={0.78} />
@@ -625,36 +659,38 @@ export default function FarmQuestScene3D({
           shadow-normalBias={0.02}
         />
 
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]} receiveShadow={!liteMode}>
-          <planeGeometry args={[12, 5.2]} />
-          <meshStandardMaterial color="#b8a780" />
-        </mesh>
+        <group scale={[FIELD_RENDER_SCALE, FIELD_RENDER_SCALE, FIELD_RENDER_SCALE]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]} receiveShadow={false}>
+            <planeGeometry args={[12, 5.2]} />
+            <meshStandardMaterial color="#b8a780" transparent opacity={0} depthWrite={false} />
+          </mesh>
 
-        {(["A", "B", "C"] as const).map((field) => {
-          const active = activeField === field;
-          const layout = FIELD_LAYOUT[field];
-          const visible = field === "A" || (field === "B" && stepIndex >= 2) || (field === "C" && stepIndex >= 4);
+          {(["A", "B", "C"] as const).map((field) => {
+            const active = activeField === field;
+            const layout = FIELD_LAYOUT[field];
+            const visible = field === "A" || (field === "B" && stepIndex >= 2) || (field === "C" && stepIndex >= 4);
 
-          return (
-            <mesh key={field} position={[layout.centerX, -0.02, 0]} receiveShadow={!liteMode}>
-              <boxGeometry args={[layout.width, 0.05, layout.depth]} />
-              <meshStandardMaterial
-                color={active ? "#9ab66f" : "#b49d73"}
-                transparent={!visible}
-                opacity={visible ? 1 : 0.38}
-                depthWrite={visible}
-              />
-            </mesh>
-          );
-        })}
+            return (
+              <mesh key={field} position={[layout.centerX, -0.02, 0]} receiveShadow={!liteMode}>
+                <boxGeometry args={[layout.width, 0.05, layout.depth]} />
+                <meshStandardMaterial
+                  color={active ? "#9ab66f" : "#b49d73"}
+                  transparent={!visible}
+                  opacity={visible ? 1 : 0.38}
+                  depthWrite={visible}
+                />
+              </mesh>
+            );
+          })}
 
-        {!enableDetailedModel || !wheatModelLoaded || wheatModel === null
-          ? renderPlantMeshes(null, true)
-          : renderPlantMeshes(wheatModel, false)}
+          {!enableDetailedModel || !wheatModelLoaded || wheatModel === null
+            ? renderPlantMeshes(null, true)
+            : renderPlantMeshes(wheatModel, false)}
+        </group>
 
         <OrbitControls
           enablePan={false}
-          target={[cameraFocusX, 0.2, 0]}
+          target={[cameraFocusX, 0.18, 0]}
           minDistance={5.4}
           maxDistance={9.4}
           minPolarAngle={Math.PI / 4.6}

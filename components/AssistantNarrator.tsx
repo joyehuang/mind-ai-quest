@@ -52,8 +52,8 @@ export default function AssistantNarrator({
   const badgeText = theme === "farm" ? "text-[#6d4b1f]" : "text-[#27486f]";
 
   return (
-    <div className={`flex items-end gap-2 ${className ?? ""}`}>
-      <div className="relative h-[70px] w-[70px] shrink-0">
+    <div className={`flex items-end gap-3 ${className ?? ""}`}>
+      <div className="relative h-[90px] w-[90px] shrink-0 origin-bottom-left scale-[1.2]">
         <div
           className="absolute inset-0 rounded-full border border-[rgba(255,255,255,0.28)] shadow-[0_8px_20px_rgba(8,12,24,0.35)]"
           style={{
@@ -62,17 +62,17 @@ export default function AssistantNarrator({
         />
 
         <div
-          className="absolute left-1/2 top-[16px] h-[34px] w-[34px] -translate-x-1/2 rounded-full"
+          className="absolute left-1/2 top-[20px] h-[42px] w-[42px] -translate-x-1/2 rounded-full"
           style={{ backgroundColor: skinColor }}
         />
         <div
-          className="absolute left-1/2 top-[10px] h-[18px] w-[38px] -translate-x-1/2 rounded-[50%]"
+          className="absolute left-1/2 top-[12px] h-[22px] w-[46px] -translate-x-1/2 rounded-[50%]"
           style={{ backgroundColor: hairColor }}
         />
 
-        <span className="absolute left-[23px] top-[31px] h-[4px] w-[4px] rounded-full bg-[#2d3138]" />
-        <span className="absolute left-[43px] top-[31px] h-[4px] w-[4px] rounded-full bg-[#2d3138]" />
-        <span className="absolute left-1/2 top-[40px] h-[2px] w-[10px] -translate-x-1/2 rounded-full bg-[#925f4b]" />
+        <span className="absolute left-[30px] top-[38px] h-[5px] w-[5px] rounded-full bg-[#2d3138]" />
+        <span className="absolute left-[54px] top-[38px] h-[5px] w-[5px] rounded-full bg-[#2d3138]" />
+        <span className="absolute left-1/2 top-[49px] h-[2px] w-[12px] -translate-x-1/2 rounded-full bg-[#925f4b]" />
 
         {style === "工程师" && (
           <>
@@ -91,17 +91,17 @@ export default function AssistantNarrator({
         )}
       </div>
 
-      <div className="relative max-w-[360px]">
-        <div className={`absolute -left-1.5 bottom-5 h-3 w-3 rotate-45 border-l border-b ${bubbleBorder} ${tailColor}`} />
-        <article className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-3 shadow-[0_10px_24px_rgba(10,16,28,0.2)]`}>
+      <div className="relative max-w-[460px]">
+        <div className={`absolute -left-1.5 bottom-6 h-3 w-3 rotate-45 border-l border-b ${bubbleBorder} ${tailColor}`} />
+        <article className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-3.5 shadow-[0_10px_24px_rgba(10,16,28,0.2)]`}>
           <p className={`text-[10px] uppercase tracking-[0.18em] ${bubbleTitle}`}>AI Narrator</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <p className={`text-xs font-semibold ${bubbleText}`}>{name}</p>
+            <p className={`text-sm font-semibold ${bubbleText}`}>{name}</p>
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeBg} ${badgeText}`}>
               {roleLabel(style)}
             </span>
           </div>
-          <p className={`mt-1 text-xs leading-5 ${bubbleText}`}>{message}</p>
+          <p className={`mt-1 text-sm leading-6 ${bubbleText}`}>{message}</p>
         </article>
       </div>
     </div>

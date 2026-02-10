@@ -327,6 +327,10 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
   const progress = ((step + 1) / FARM_STEPS.length) * 100;
   const isLabelStep = step === 1;
+  const isTrainStep = step === 2;
+  const isCorrectionStep = step === 3;
+  const isTuneStep = step === 4;
+  const isCenterWorkbenchStep = isLabelStep || isTrainStep || isCorrectionStep || isTuneStep;
   const adviceMode = adviceModeByStep[step] ?? "explore";
   const revealedAdviceCount = adviceRevealCountByStep[step] ?? 0;
   const showDetail = showDetailByStep[step] ?? false;
@@ -434,13 +438,13 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </p>
         </div>
 
-        {!isLabelStep && (
+        {!isCenterWorkbenchStep && (
           <AssistantNarrator
             name={playerName}
             style={playerStyle}
             message={assistantLesson}
             theme="farm"
-            className="pointer-events-auto absolute left-3 right-3 top-[146px] w-auto sm:right-[256px] sm:top-[124px] md:right-auto md:w-[min(46vw,420px)]"
+            className="pointer-events-auto absolute left-3 right-3 top-[146px] w-auto sm:right-[292px] sm:top-[124px] md:right-auto md:w-[min(50vw,500px)]"
           />
         )}
 
@@ -472,7 +476,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </p>
         </div>
 
-        {hoveredSample && !isLabelStep && (
+        {hoveredSample && !isCenterWorkbenchStep && (
           <div className="pointer-events-auto absolute right-3 top-[104px] hidden w-[280px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.76)] px-3 py-2 text-[11px] text-[#d7e3ff] backdrop-blur md:block">
             <p className="font-semibold">{hoveredSample.name}</p>
             <p className="mt-1">叶子：{hoveredSample.profile.leaf}</p>
@@ -483,7 +487,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </div>
         )}
 
-        {!isLabelStep && (
+        {!isCenterWorkbenchStep && (
           <div className="pointer-events-auto absolute bottom-3 left-3 right-3 sm:right-auto sm:w-[min(38vw,460px)]">
             <div className="rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl">
               <div className="flex flex-wrap items-center gap-2">
@@ -656,7 +660,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </div>
         )}
 
-        {!isLabelStep && (
+        {!isCenterWorkbenchStep && (
           <div className="pointer-events-auto absolute bottom-3 right-3 hidden w-[220px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl sm:block">
             <button
               type="button"
@@ -716,9 +720,139 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
             </div>
           </div>
         )}
+
+        {isTrainStep && (
+          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
+            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
+              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
+                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
+                  {step + 1}/{FARM_STEPS.length}
+                </span>
+                <p className="text-[11px] text-[#4c6794]">第三步专注模式：请在中心工作台观察训练并评估第二块田</p>
+                <div className="ml-auto flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
+                    onClick={previousStep}
+                  >
+                    上一步
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
+                    disabled={!canNext}
+                    onClick={nextStep}
+                  >
+                    下一步
+                  </button>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
+                <StepTrainTest
+                  trainProgress={trainProgress}
+                  step2Score={step2Score}
+                  step2Errors={step2Errors}
+                  trainingSetQuality={trainingQuality}
+                  targetAccuracy={secondFieldTargetAccuracy}
+                  predictions={fieldBPredictions}
+                  confusion={fieldBConfusion}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isCorrectionStep && (
+          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
+            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
+              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
+                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
+                  {step + 1}/{FARM_STEPS.length}
+                </span>
+                <p className="text-[11px] text-[#4c6794]">第四步专注模式：请在中心工作台完成第二块田纠错</p>
+                <div className="ml-auto flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
+                    onClick={previousStep}
+                  >
+                    上一步
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
+                    disabled={!canNext}
+                    onClick={nextStep}
+                  >
+                    下一步
+                  </button>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
+                <StepCorrect
+                  predictions={fieldBPredictions}
+                  reviews={fieldBReviews}
+                  step4Score={step4Score}
+                  correctCount={step4CorrectCount}
+                  onReview={(sampleId, judgment) =>
+                    setFieldBReviews((previous) => ({ ...previous, [sampleId]: judgment }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isTuneStep && (
+          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
+            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
+              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
+                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
+                  {step + 1}/{FARM_STEPS.length}
+                </span>
+                <p className="text-[11px] text-[#4c6794]">第五步专注模式：请在中心工作台完成调参并测试第三块田</p>
+                <div className="ml-auto flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
+                    onClick={previousStep}
+                  >
+                    上一步
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
+                    disabled={!canNext}
+                    onClick={nextStep}
+                  >
+                    {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
+                <StepTuneFinal
+                  dataAugment={dataAugment}
+                  layers={layers}
+                  learningRate={learningRate}
+                  onDataAugmentChange={setDataAugment}
+                  onLayersChange={setLayers}
+                  onLearningRateChange={setLearningRate}
+                  onRun={runFinalSimulation}
+                  step2Score={step2Score}
+                  step4Score={step4Score}
+                  trainingSetQuality={trainingQuality}
+                  finalResult={finalResult}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {!isLabelStep && (
+      {!isCenterWorkbenchStep && (
         <div className="pointer-events-auto absolute bottom-3 left-3 right-3 z-30 sm:hidden">
           <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.84)] p-2 backdrop-blur">
             <button

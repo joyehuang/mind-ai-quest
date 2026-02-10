@@ -9,7 +9,7 @@ interface LossChartProps {
 
 const CHART_WIDTH = 720;
 const CHART_HEIGHT = 260;
-const PADDING = { top: 18, right: 26, bottom: 38, left: 46 };
+const PADDING = { top: 18, right: 26, bottom: 38, left: 58 };
 
 function toPath(points: string[]) {
   return points.join(" ");
@@ -96,7 +96,7 @@ export default function LossChart({ points }: LossChartProps) {
                 stroke="#e1e8f5"
                 strokeDasharray="5 5"
               />
-              <text x={10} y={y + 4} fontSize="11" fill="#66789f">
+              <text x={PADDING.left - 10} y={y + 4} textAnchor="end" fontSize="11" fill="#66789f">
                 {tick.toFixed(2)}
               </text>
             </g>
@@ -113,7 +113,14 @@ export default function LossChart({ points }: LossChartProps) {
         <text x={CHART_WIDTH / 2 - 45} y={CHART_HEIGHT - 8} fontSize="12" fill="#66789f">
           训练轮次 Epoch
         </text>
-        <text x={8} y={16} fontSize="12" fill="#66789f">
+        <text
+          x={18}
+          y={CHART_HEIGHT / 2}
+          transform={`rotate(-90 18 ${CHART_HEIGHT / 2})`}
+          textAnchor="middle"
+          fontSize="12"
+          fill="#66789f"
+        >
           Loss
         </text>
       </svg>
