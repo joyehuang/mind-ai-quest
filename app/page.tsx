@@ -35,18 +35,7 @@ export default function Home() {
   const progressPercent = (completedCount / 2) * 100;
   const trimmedName = name.trim();
 
-  const assetBase = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.replace(/\/$/, "");
-  const configuredVideo = process.env.NEXT_PUBLIC_HOME_VIDEO_URL?.trim();
-  const homeVideoSources = configuredVideo
-    ? [configuredVideo]
-    : assetBase
-      ? [
-          `${assetBase}/videos/background.mp4`,
-          `${assetBase}/videos/background.webm`,
-          `${assetBase}/videos/background.mov`,
-          `${assetBase}/videos/background`,
-        ]
-      : ["/videos/background.mp4"];
+  const homeVideoSources = ["/homepage.mp4"];
 
   const homeGuideMessage = trimmedName
     ? `太好了，${trimmedName}！你现在是“${style}”。三个风格难度一样，选喜欢的就好。准备好就点右下角进入游戏。`

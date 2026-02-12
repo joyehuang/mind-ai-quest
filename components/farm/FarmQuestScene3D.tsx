@@ -63,10 +63,7 @@ interface WheatModel {
   height: number;
 }
 
-const ASSET_BASE_URL = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.replace(/\/$/, "");
-const WHEAT_MODEL_PATHS = ASSET_BASE_URL
-  ? [`${ASSET_BASE_URL}/models/wheet.glb`, `${ASSET_BASE_URL}/models/wheat.glb`, "/models/wheet.glb", "/models/wheat.glb"]
-  : ["/models/wheet.glb", "/models/wheat.glb"];
+const WHEAT_MODEL_PATHS = ["/wheet.glb"];
 const FARM_BG_IMAGE_PATHS = [
   "/images_game-bg.png",
   "/image-game-bg.png",
