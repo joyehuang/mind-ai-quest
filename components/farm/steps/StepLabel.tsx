@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { FarmSample, RiceLabel } from "@/lib/farm/types";
 
 interface StepLabelProps {
@@ -17,11 +17,52 @@ function labelText(label: RiceLabel) {
   return label === "healthy" ? "健康" : "不健康";
 }
 
-const ASSET_BASE_URL = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.replace(/\/$/, "");
+const SAMPLE_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"] as const;
 
-function sampleImageSrc(sampleId: string) {
-  const path = `/images/${sampleId.toLowerCase()}.png`;
-  return ASSET_BASE_URL ? `${ASSET_BASE_URL}${path}` : path;
+function parseSampleIndex(sampleId: string) {
+  const match = sampleId.match(/(\d+)/);
+  if (!match) {
+    return 1;
+  }
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
+function sampleImageCandidates(sampleId: string) {
+  const sampleIndex = parseSampleIndex(sampleId);
+  return SAMPLE_IMAGE_EXTENSIONS.flatMap((ext) => [`/image${sampleIndex}${ext}`, `/images_a${sampleIndex}${ext}`]);
+}
+
+function LocalSampleImage({
+  sampleId,
+  alt,
+  sizes,
+  quality,
+  priority = false,
+}: {
+  sampleId: string;
+  alt: string;
+  sizes: string;
+  quality: number;
+  priority?: boolean;
+}) {
+  const candidates = useMemo(() => sampleImageCandidates(sampleId), [sampleId]);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
+  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? "/image1.png";
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      className="object-cover"
+      quality={quality}
+      priority={priority}
+      onError={() => setCandidateIndex((current) => (current < candidates.length - 1 ? current + 1 : current))}
+    />
+  );
 }
 
 export default function StepLabel({
@@ -65,12 +106,11 @@ export default function StepLabel({
                 >
                   <div className="flex items-center gap-2">
                     <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[#cdd8ee] bg-[#f8faff]">
-                      <Image
-                        src={sampleImageSrc(sample.id)}
+                      <LocalSampleImage
+                        key={sample.id}
+                        sampleId={sample.id}
                         alt={`${sample.name}样本图`}
-                        fill
                         sizes="40px"
-                        className="object-cover"
                         quality={62}
                       />
                     </div>
@@ -98,12 +138,11 @@ export default function StepLabel({
                 <div className="mt-2 grid gap-3 md:grid-cols-[188px_1fr]">
                   <div className="space-y-2">
                     <div className="relative h-[168px] overflow-hidden rounded-xl border border-[#cdd8ee] bg-[#f9fbff]">
-                      <Image
-                        src={sampleImageSrc(activeSample.id)}
+                      <LocalSampleImage
+                        key={activeSample.id}
+                        sampleId={activeSample.id}
                         alt={`${activeSample.name}高清图`}
-                        fill
                         sizes="(max-width: 768px) 100vw, 188px"
-                        className="object-cover"
                         priority
                         quality={76}
                       />

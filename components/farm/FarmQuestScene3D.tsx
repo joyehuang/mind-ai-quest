@@ -67,20 +67,15 @@ const ASSET_BASE_URL = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.replace(/\/$/, ""
 const WHEAT_MODEL_PATHS = ASSET_BASE_URL
   ? [`${ASSET_BASE_URL}/models/wheet.glb`, `${ASSET_BASE_URL}/models/wheat.glb`, "/models/wheet.glb", "/models/wheat.glb"]
   : ["/models/wheet.glb", "/models/wheat.glb"];
-const FARM_BG_IMAGE_PATHS = ASSET_BASE_URL
-  ? [
-      `${ASSET_BASE_URL}/images/game-bg`,
-      `${ASSET_BASE_URL}/images/game-bg.png`,
-      `${ASSET_BASE_URL}/images/game-bg.jpg`,
-      `${ASSET_BASE_URL}/images/game-bg.jpeg`,
-      `${ASSET_BASE_URL}/images/game-bg.webp`,
-      "/images/game-bg",
-      "/images/game-bg.png",
-      "/images/game-bg.jpg",
-      "/images/game-bg.jpeg",
-      "/images/game-bg.webp",
-    ]
-  : ["/images/game-bg", "/images/game-bg.png", "/images/game-bg.jpg", "/images/game-bg.jpeg", "/images/game-bg.webp"];
+const FARM_BG_IMAGE_PATHS = [
+  "/images_game-bg.png",
+  "/image-game-bg.png",
+  "/image-game-bg.jpg",
+  "/images/game-bg.png",
+  "/images/game-bg.jpg",
+  "/images/game-bg.jpeg",
+  "/images/game-bg.webp",
+];
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
   A: {
