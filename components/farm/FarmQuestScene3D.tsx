@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { Clone, OrbitControls } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Box3, Mesh, Object3D, Vector3 } from "three";
@@ -369,25 +369,41 @@ function RicePlant({
   const modelOffsetY = model ? -model.minY * modelScale : 0;
   const modelRotateY = ((seed % 360) * Math.PI) / 180 + appearance.stemLean * 0.5;
   const lift = selected ? 0.03 : 0;
+  const hitRadius = useLitePlant ? 0.1 : 0.09;
+  const hitHeight = clamp(appearance.stemHeight + 0.18, 0.48, 0.74);
+  const hitCapsuleLength = Math.max(0.18, hitHeight - hitRadius * 2);
+  const hitCapsuleCenterY = hitHeight / 2;
+  const panicleHitY = clamp(appearance.stemHeight + 0.06, 0.3, 0.62);
+  const panicleHitRadius = useLitePlant ? 0.12 : 0.11;
+
+  function handleHitHover(event: ThreeEvent<PointerEvent>) {
+    event.stopPropagation();
+    onHover();
+  }
+
+  function handleHitSelect(event: ThreeEvent<MouseEvent>) {
+    event.stopPropagation();
+    onSelect();
+  }
 
   return (
     <group position={[position[0], position[1] + lift, position[2]]} scale={[PLANT_SCALE_FACTOR, PLANT_SCALE_FACTOR, PLANT_SCALE_FACTOR]}>
       <mesh
-        position={[0, 0.46, 0]}
-        onPointerEnter={(event) => {
-          event.stopPropagation();
-          onHover();
-        }}
-        onPointerMove={(event) => {
-          event.stopPropagation();
-          onHover();
-        }}
-        onClick={(event) => {
-          event.stopPropagation();
-          onSelect();
-        }}
+        position={[0, hitCapsuleCenterY, 0]}
+        onPointerEnter={handleHitHover}
+        onPointerMove={handleHitHover}
+        onClick={handleHitSelect}
       >
-        <boxGeometry args={[0.3, 0.92, 0.3]} />
+        <capsuleGeometry args={[hitRadius, hitCapsuleLength, 4, 8]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      <mesh
+        position={[0, panicleHitY, 0]}
+        onPointerEnter={handleHitHover}
+        onPointerMove={handleHitHover}
+        onClick={handleHitSelect}
+      >
+        <sphereGeometry args={[panicleHitRadius, 10, 10]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
