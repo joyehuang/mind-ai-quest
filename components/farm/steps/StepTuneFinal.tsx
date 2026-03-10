@@ -16,6 +16,8 @@ interface StepTuneFinalProps {
   step4Score: number;
   trainingSetQuality: number;
   finalResult: FinalSimulationResult | null;
+  activeHint: "augment" | "layers" | "learningRate" | null;
+  onExplain: (hint: "augment" | "layers" | "learningRate") => void;
 }
 
 function labelText(value: "healthy" | "unhealthy") {
@@ -34,6 +36,8 @@ export default function StepTuneFinal({
   step4Score,
   trainingSetQuality,
   finalResult,
+  activeHint,
+  onExplain,
 }: StepTuneFinalProps) {
   return (
     <div className="space-y-4">
@@ -45,8 +49,18 @@ export default function StepTuneFinal({
         <p className="mt-1 text-xs text-[#60729b]">训练集质量：{toPercent(trainingSetQuality)}</p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-[#d1dbee] bg-[#f5f8ff] p-3">
-            <p className="text-xs text-[#66779f]">记忆药水（数据增强）</p>
+          <div
+            className={`rounded-xl border p-3 ${
+              activeHint === "augment" ? "border-[#8dbeff] bg-[#edf4ff]" : "border-[#d1dbee] bg-[#f5f8ff]"
+            }`}
+          >
+            <button
+              type="button"
+              className="text-left text-xs font-semibold text-[#4b6492]"
+              onClick={() => onExplain("augment")}
+            >
+              记忆药水（数据增强）
+            </button>
             <button
               type="button"
               className={`mt-2 w-full rounded-xl border px-3 py-2 text-sm font-semibold ${
@@ -60,8 +74,18 @@ export default function StepTuneFinal({
             </button>
           </div>
 
-          <div className="rounded-xl border border-[#d1dbee] bg-[#f5f8ff] p-3">
-            <p className="text-xs text-[#66779f]">大脑积木层数：{layers} 层</p>
+          <div
+            className={`rounded-xl border p-3 ${
+              activeHint === "layers" ? "border-[#8dbeff] bg-[#edf4ff]" : "border-[#d1dbee] bg-[#f5f8ff]"
+            }`}
+          >
+            <button
+              type="button"
+              className="text-left text-xs font-semibold text-[#4b6492]"
+              onClick={() => onExplain("layers")}
+            >
+              大脑积木层数：{layers} 层
+            </button>
             <input
               type="range"
               min={1}
@@ -74,8 +98,18 @@ export default function StepTuneFinal({
             <p className="mt-1 text-[11px] text-[#6f81a8]">3 层附近最稳，太浅欠拟合，太深可能过拟合。</p>
           </div>
 
-          <div className="rounded-xl border border-[#d1dbee] bg-[#f5f8ff] p-3">
-            <p className="text-xs text-[#66779f]">学习速度：{learningRate}</p>
+          <div
+            className={`rounded-xl border p-3 ${
+              activeHint === "learningRate" ? "border-[#8dbeff] bg-[#edf4ff]" : "border-[#d1dbee] bg-[#f5f8ff]"
+            }`}
+          >
+            <button
+              type="button"
+              className="text-left text-xs font-semibold text-[#4b6492]"
+              onClick={() => onExplain("learningRate")}
+            >
+              学习速度：{learningRate}
+            </button>
             <input
               type="range"
               min={1}

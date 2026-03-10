@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   FARM_STEPS,
   FIELD_A_SAMPLES,
@@ -9,7 +9,6 @@ import {
   FIELD_C_SAMPLES,
   SECOND_FIELD_TARGET,
   THIRD_FIELD_TARGET,
-  TRAINING_POOL_SIZE,
   TRAINING_TARGET,
 } from "@/lib/farm/datasets";
 import { toConfusionMetrics } from "@/lib/farm/confusion";
@@ -24,11 +23,9 @@ import {
   calculateTrainingSetQuality,
   countLabeledSamples,
   generateLossSeries,
-  toPercent,
 } from "@/lib/farm/scoring";
 import type { FinalSimulationResult, ModelJudgment, RiceLabel } from "@/lib/farm/types";
 import AssistantNarrator from "@/components/AssistantNarrator";
-import StepCollect from "./steps/StepCollect";
 import StepCorrect from "./steps/StepCorrect";
 import StepLabel from "./steps/StepLabel";
 import StepTrainTest from "./steps/StepTrainTest";
@@ -44,6 +41,23 @@ interface FarmQuestProps {
   onBack: () => void;
   onComplete: () => void;
 }
+
+const FARM_ASSISTANT_MESSAGES = {
+  collect: "嘿！请你先点击页面上的稻子，帮我先收集一些稻子样本吧，一共需要收集10个哦！",
+  label: "你是聪明的小侦探，请仔细阅读文字和图片，判断这个稻子属于健康还是不健康的稻子哦！",
+  trained: "现在你已经靠自己的努力训练出了第一个模型啦！但是好像存在一些错误！我们一起去检查一下吧",
+  correct: "现在我们看看你训练出来的模型和真实数据的差异吧！点击按钮来判断小麦是否犯错了哦！",
+  tune: "现在页面上有几个小技能，可以帮助你优化小麦，点击看看吧！",
+  complete: "太厉害了！我现在能更好地预测稻子的好坏啦！",
+  tuneHints: {
+    augment: "这个技能可以让小麦把同一张图翻转、放大、变色再多看几遍，记得更牢哦！",
+    layers: "这个技能代表了小麦脑子的层数，建议选择3层哦。太少了小麦会想得太简单，太多了反而会把自己绕晕",
+    learningRate:
+      "这个技能决定了小麦的学习速度，5是最好的，太小容易学不会，太大的话容易跳过正确答案哦！",
+  },
+} as const;
+
+type FarmAssistantHintKey = keyof typeof FARM_ASSISTANT_MESSAGES.tuneHints;
 
 export default function FarmQuest({ playerName, playerStyle, onBack, onComplete }: FarmQuestProps) {
   const [step, setStep] = useState(0);
@@ -61,10 +75,8 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
   const [layers, setLayers] = useState(3);
   const [learningRate, setLearningRate] = useState(5);
   const [finalResult, setFinalResult] = useState<FinalSimulationResult | null>(null);
-  const [taskPanelOpen, setTaskPanelOpen] = useState(false);
-  const [adviceModeByStep, setAdviceModeByStep] = useState<Record<number, "explore" | "guided">>({});
-  const [adviceRevealCountByStep, setAdviceRevealCountByStep] = useState<Record<number, number>>({});
-  const [showDetailByStep, setShowDetailByStep] = useState<Record<number, boolean>>({});
+  const [assistantOverride, setAssistantOverride] = useState<string | null>(null);
+  const [activeTuneHint, setActiveTuneHint] = useState<FarmAssistantHintKey | null>(null);
 
   const [liteMode, setLiteMode] = useState(false);
   const hoverLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -205,10 +217,8 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     setLayers(3);
     setLearningRate(5);
     setFinalResult(null);
-    setTaskPanelOpen(false);
-    setAdviceModeByStep({});
-    setAdviceRevealCountByStep({});
-    setShowDetailByStep({});
+    setAssistantOverride(null);
+    setActiveTuneHint(null);
   }
 
   function toggleCollect(sampleId: string) {
@@ -274,6 +284,9 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
   }
 
   function runFinalSimulation() {
+    setAssistantOverride(null);
+    setActiveTuneHint(null);
+
     const score = calculateFinalScore({
       step2Score,
       step4Score,
@@ -309,6 +322,8 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       return;
     }
 
+    setAssistantOverride(null);
+    setActiveTuneHint(null);
     setStep((current) => Math.max(0, current - 1));
   }
 
@@ -322,6 +337,8 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       return;
     }
 
+    setAssistantOverride(null);
+    setActiveTuneHint(null);
     setStep((current) => current + 1);
   }
 
@@ -331,73 +348,82 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
   const isCorrectionStep = step === 3;
   const isTuneStep = step === 4;
   const isCenterWorkbenchStep = isLabelStep || isTrainStep || isCorrectionStep || isTuneStep;
-  const adviceMode = adviceModeByStep[step] ?? "explore";
-  const revealedAdviceCount = adviceRevealCountByStep[step] ?? 0;
-  const showDetail = showDetailByStep[step] ?? false;
+  const baseAssistantMessage = useMemo(() => {
+    if (step === 0) {
+      return FARM_ASSISTANT_MESSAGES.collect;
+    }
+    if (step === 1) {
+      return FARM_ASSISTANT_MESSAGES.label;
+    }
+    if (step === 2) {
+      return trainProgress >= 100 ? FARM_ASSISTANT_MESSAGES.trained : null;
+    }
+    if (step === 3) {
+      return FARM_ASSISTANT_MESSAGES.correct;
+    }
+    return finalResult ? FARM_ASSISTANT_MESSAGES.complete : FARM_ASSISTANT_MESSAGES.tune;
+  }, [finalResult, step, trainProgress]);
+  const assistantMessage = assistantOverride ?? baseAssistantMessage;
 
-  const assistantLesson =
-    step === 0
-      ? `这一步像先挑教材：样本要覆盖不同情况，模型才不会“偏科”。你已收集 ${collectedIds.length}/${TRAINING_TARGET}，当前训练集质量 ${toPercent(trainingQuality)}。`
-      : step === 1
-        ? `打标签就像给练习题写标准答案。答案越准，模型学得越稳。你已完成 ${labeledCount}/${trainingSamples.length || TRAINING_TARGET} 个标签。`
-        : step === 2
-          ? trainProgress >= 100
-            ? `训练结束了。把它当作带新巡田员实战演练：先学教材，再去第二块田判断。当前准确率 ${toPercent(fieldBConfusion.accuracy)}。`
-            : `模型训练中（${trainProgress}%）。这一步像让新巡田员反复看案例，先形成“健康/异常”的判断边界。`
-          : step === 3
-            ? `纠错像老师批改作业：把错题讲明白，模型才会进步。你已纠错 ${reviewedCount}/${SECOND_FIELD_TARGET}。`
-            : finalResult
-            ? `调参像掌火候：火太大或太小都不行。你已经把最终准确率稳定在 ${toPercent(finalResult.score.finalAccuracy)}。`
-              : "现在在调“火候”：层数、学习率、数据增强要平衡，目标是让第三块田泛化表现更稳。";
-
-  const assistantHints = useMemo(
-    () => [
-      [
-        `先在第一块田收集 ${TRAINING_TARGET} 个样本，优先覆盖“看起来明显不同”的稻种。`,
-        "如果训练集里全是健康或全是不健康，模型会偏科，尽量混合采样。",
-        "悬浮查看特征后再决定是否加入训练集，避免凭直觉乱收。",
-      ],
-      [
-        "先看图片，再看文字特征，最后再点“健康/不健康”。",
-        "优先处理你最确定的样本，再回头处理犹豫样本。",
-        "当前样本都标完后，再进入下一步训练，避免把噪声标签喂给模型。",
-      ],
-      [
-        "训练中先观察进度条，不需要频繁切换设置。",
-        "训练完成后重点看第二块田准确率，决定后续纠错压力。",
-        `若准确率偏低，通常和第二步标签质量相关。当前标签得分 ${toPercent(step2Score)}。`,
-      ],
-      [
-        "把第二块田当成错题本：先改最明显的错判。",
-        `目标是完成 ${SECOND_FIELD_TARGET} 条复核，数量和质量都重要。`,
-        "纠错后再去调参，避免把参数问题和标签问题混在一起。",
-      ],
-      [
-        "调参只改一两个变量，便于观察因果变化。",
-        "层数太少学不动，太多会变慢；学习率太大容易震荡。",
-        "先跑一次基线，再开数据增强对比第三块田表现。",
-      ],
-    ],
-    [step2Score],
-  );
-  const currentHints = assistantHints[step] ?? [];
-  const allHintsShown = currentHints.length > 0 && revealedAdviceCount >= currentHints.length;
-
-  function setAdviceMode(mode: "explore" | "guided") {
-    setAdviceModeByStep((previous) => ({ ...previous, [step]: mode }));
+  function handleTuneHintSelect(hint: FarmAssistantHintKey) {
+    setActiveTuneHint(hint);
+    setAssistantOverride(FARM_ASSISTANT_MESSAGES.tuneHints[hint]);
   }
 
-  function revealNextAdvice() {
-    const maxCount = currentHints.length;
-    setAdviceModeByStep((previous) => ({ ...previous, [step]: "guided" }));
-    setAdviceRevealCountByStep((previous) => ({
-      ...previous,
-      [step]: Math.min(maxCount, (previous[step] ?? 0) + 1),
-    }));
+  function renderAssistantBubble(className?: string) {
+    if (!assistantMessage) {
+      return null;
+    }
+
+    return (
+      <AssistantNarrator
+        name={playerName}
+        style={playerStyle}
+        message={assistantMessage}
+        theme="farm"
+        className={className}
+      />
+    );
   }
 
-  function toggleDetailCard() {
-    setShowDetailByStep((previous) => ({ ...previous, [step]: !showDetail }));
+  function renderWorkbenchStage(title: string, children: ReactNode, contentClassName = "min-h-0 flex-1 overflow-auto p-3 sm:p-4") {
+    return (
+      <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
+        <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
+            <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
+              {step + 1}/{FARM_STEPS.length}
+            </span>
+            <p className="text-[11px] text-[#4c6794]">{title}</p>
+            <div className="ml-auto flex gap-2">
+              <button
+                type="button"
+                className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
+                onClick={previousStep}
+              >
+                上一步
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
+                disabled={!canNext}
+                onClick={nextStep}
+              >
+                {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
+              </button>
+            </div>
+          </div>
+
+          {assistantMessage && (
+            <div className="border-b border-[#dbe5f5] bg-[linear-gradient(180deg,rgba(255,249,238,0.96),rgba(245,248,255,0.92))] px-3 py-3 sm:px-4">
+              {renderAssistantBubble("w-full max-w-[760px]")}
+            </div>
+          )}
+
+          <div className={contentClassName}>{children}</div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -436,17 +462,26 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           <p className="mt-1 text-[11px] text-[#b4c3e6]">
             {playerName}（{playerStyle}）
           </p>
+          {step === 0 && (
+            <>
+              <div className="mt-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]">
+                <div
+                  className="h-1.5 rounded-full bg-gradient-to-r from-[#7cb6ff] to-[#f0c97d]"
+                  style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="mt-1 text-[11px] text-[#d9e7ff]">
+                稻子样本：{collectedIds.length}/{TRAINING_TARGET}
+              </p>
+              {collectMessage && <p className="mt-1 text-[10px] text-[#ffe1bd]">{collectMessage}</p>}
+            </>
+          )}
         </div>
 
-        {!isCenterWorkbenchStep && (
-          <AssistantNarrator
-            name={playerName}
-            style={playerStyle}
-            message={assistantLesson}
-            theme="farm"
-            className="pointer-events-auto absolute left-3 right-3 top-[146px] w-auto sm:right-[292px] sm:top-[124px] md:right-auto md:w-[min(50vw,500px)]"
-          />
-        )}
+        {!isCenterWorkbenchStep &&
+          renderAssistantBubble(
+            "pointer-events-auto absolute left-3 right-3 top-[194px] w-auto sm:right-[292px] sm:top-[166px] md:right-auto md:w-[min(50vw,500px)]",
+          )}
 
         <div className="pointer-events-auto absolute right-3 top-3 w-[min(64vw,220px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] p-2 text-[#e7eeff] backdrop-blur-md sm:w-[min(70vw,240px)]">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -488,179 +523,6 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
         )}
 
         {!isCenterWorkbenchStep && (
-          <div className="pointer-events-auto absolute bottom-3 left-3 right-3 sm:right-auto sm:w-[min(38vw,460px)]">
-            <div className="rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[rgba(255,255,255,0.16)] px-2.5 py-1 text-[11px] text-[#d8e4ff]">
-                  {step + 1}/{FARM_STEPS.length}
-                </span>
-                <span className="text-[11px] text-[#a9badf]">{FARM_STEPS[step]}</span>
-                <button
-                  type="button"
-                  className="ml-auto rounded-full bg-[rgba(255,255,255,0.16)] px-3 py-1 text-[11px] text-[#d8e4ff]"
-                  onClick={() => setTaskPanelOpen((current) => !current)}
-                >
-                  {taskPanelOpen ? "收起建议" : "小麦建议"}
-                </button>
-              </div>
-
-              {taskPanelOpen && (
-                <div className="mt-2 space-y-2">
-                  <div className="rounded-xl border border-[#d6dff4] bg-[rgba(245,248,255,0.96)] p-2 text-[#26334f]">
-                    <p className="text-xs font-semibold text-[#2a4775]">小麦AI建议台</p>
-                    <p className="mt-1 text-[11px] text-[#5f7298]">
-                      你可以自主探索，也可以随时点“获取下一条建议”。
-                    </p>
-
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      <button
-                        type="button"
-                        className={`rounded-full px-2.5 py-1 text-[11px] ${
-                          adviceMode === "explore"
-                            ? "bg-[#dbe8ff] text-[#214274]"
-                            : "bg-[rgba(255,255,255,0.7)] text-[#6b7ea2]"
-                        }`}
-                        onClick={() => setAdviceMode("explore")}
-                      >
-                        自主探索
-                      </button>
-                      <button
-                        type="button"
-                        className={`rounded-full px-2.5 py-1 text-[11px] ${
-                          adviceMode === "guided"
-                            ? "bg-[#dbe8ff] text-[#214274]"
-                            : "bg-[rgba(255,255,255,0.7)] text-[#6b7ea2]"
-                        }`}
-                        onClick={() => setAdviceMode("guided")}
-                      >
-                        建议模式
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-full bg-[#87b5ff] px-2.5 py-1 text-[11px] font-semibold text-[#0f2748] disabled:bg-[#c6d3ea] disabled:text-[#7b88a1]"
-                        onClick={revealNextAdvice}
-                        disabled={allHintsShown}
-                      >
-                        {allHintsShown ? "建议已看完" : "获取下一条建议"}
-                      </button>
-                    </div>
-
-                    {adviceMode === "explore" && (
-                      <p className="mt-2 rounded-lg bg-[#eef3ff] px-2 py-1.5 text-[11px] text-[#4f6690]">
-                        当前为自主探索模式。你可以先自己尝试，卡住时再点“获取下一条建议”。
-                      </p>
-                    )}
-
-                    {adviceMode === "guided" && (
-                      <div className="mt-2 space-y-1.5">
-                        {revealedAdviceCount === 0 ? (
-                          <p className="rounded-lg bg-[#eef3ff] px-2 py-1.5 text-[11px] text-[#4f6690]">
-                            还没有展示建议，点击“获取下一条建议”开始。
-                          </p>
-                        ) : (
-                          currentHints.slice(0, revealedAdviceCount).map((hint, index) => (
-                            <p
-                              key={`${step}-hint-${index}`}
-                              className="rounded-lg bg-[#eef3ff] px-2 py-1.5 text-[11px] text-[#415f91]"
-                            >
-                              建议 {index + 1}：{hint}
-                            </p>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    className="rounded-full bg-[rgba(255,255,255,0.18)] px-3 py-1 text-[11px] text-[#d8e4ff]"
-                    onClick={toggleDetailCard}
-                  >
-                    {showDetail ? "收起完整任务说明" : "查看完整任务说明（可选）"}
-                  </button>
-
-                  {showDetail && (
-                    <>
-                      <div className="flex flex-wrap gap-1.5">
-                        {FARM_STEPS.map((item, index) => (
-                          <button
-                            key={item}
-                            type="button"
-                            disabled={index > step}
-                            onClick={() => index <= step && setStep(index)}
-                            className={`rounded-full px-2 py-0.5 text-[10px] ${
-                              index <= step
-                                ? "bg-[#8ab8ff] text-[#0f203f]"
-                                : "bg-[rgba(255,255,255,0.1)] text-[#97a9ce]"
-                            }`}
-                          >
-                            {index + 1}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="max-h-[42vh] overflow-auto rounded-xl border border-[#d6dff4] bg-[rgba(245,248,255,0.94)] p-2 text-[#26334f]">
-                        {step === 0 && (
-                          <StepCollect
-                            collectedSamples={trainingSamples}
-                            collectedIds={collectedIds}
-                            target={TRAINING_TARGET}
-                            poolSize={TRAINING_POOL_SIZE}
-                            trainingQuality={trainingQuality}
-                            hoveredSample={hoveredSample}
-                            collectMessage={collectMessage}
-                          />
-                        )}
-
-                        {step === 2 && (
-                          <StepTrainTest
-                            trainProgress={trainProgress}
-                            step2Score={step2Score}
-                            step2Errors={step2Errors}
-                            trainingSetQuality={trainingQuality}
-                            targetAccuracy={secondFieldTargetAccuracy}
-                            predictions={fieldBPredictions}
-                            confusion={fieldBConfusion}
-                          />
-                        )}
-
-                        {step === 3 && (
-                          <StepCorrect
-                            predictions={fieldBPredictions}
-                            reviews={fieldBReviews}
-                            step4Score={step4Score}
-                            correctCount={step4CorrectCount}
-                            onReview={(sampleId, judgment) =>
-                              setFieldBReviews((previous) => ({ ...previous, [sampleId]: judgment }))
-                            }
-                          />
-                        )}
-
-                        {step === 4 && (
-                          <StepTuneFinal
-                            dataAugment={dataAugment}
-                            layers={layers}
-                            learningRate={learningRate}
-                            onDataAugmentChange={setDataAugment}
-                            onLayersChange={setLayers}
-                            onLearningRateChange={setLearningRate}
-                            onRun={runFinalSimulation}
-                            step2Score={step2Score}
-                            step4Score={step4Score}
-                            trainingSetQuality={trainingQuality}
-                            finalResult={finalResult}
-                          />
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {!isCenterWorkbenchStep && (
           <div className="pointer-events-auto absolute bottom-3 right-3 hidden w-[220px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl sm:block">
             <button
               type="button"
@@ -680,176 +542,67 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </div>
         )}
 
-        {isLabelStep && (
-          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
-            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
-              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
-                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
-                  {step + 1}/{FARM_STEPS.length}
-                </span>
-                <p className="text-[11px] text-[#4c6794]">第二步专注模式：请在中心工作台完成全部样本标注</p>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
-                    onClick={previousStep}
-                  >
-                    上一步
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
-                    disabled={!canNext}
-                    onClick={nextStep}
-                  >
-                    下一步
-                  </button>
-                </div>
-              </div>
+        {isLabelStep &&
+          renderWorkbenchStage(
+            "第二步专注模式：请在中心工作台完成全部样本标注",
+            <StepLabel
+              samples={trainingSamples}
+              labels={labels}
+              activeSampleId={effectiveActiveSampleId}
+              onFocusSample={setActiveSampleId}
+              onLabel={markLabel}
+              className="h-full"
+            />,
+            "min-h-0 flex-1 overflow-auto p-3 sm:p-4",
+          )}
 
-              <div className="min-h-0 flex-1 p-3 sm:p-4">
-                <StepLabel
-                  samples={trainingSamples}
-                  labels={labels}
-                  activeSampleId={effectiveActiveSampleId}
-                  onFocusSample={setActiveSampleId}
-                  onLabel={markLabel}
-                  className="h-full"
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {isTrainStep &&
+          renderWorkbenchStage(
+            "第三步专注模式：请在中心工作台观察训练并评估第二块田",
+            <StepTrainTest
+              trainProgress={trainProgress}
+              step2Score={step2Score}
+              step2Errors={step2Errors}
+              trainingSetQuality={trainingQuality}
+              targetAccuracy={secondFieldTargetAccuracy}
+              predictions={fieldBPredictions}
+              confusion={fieldBConfusion}
+            />,
+          )}
 
-        {isTrainStep && (
-          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
-            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
-              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
-                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
-                  {step + 1}/{FARM_STEPS.length}
-                </span>
-                <p className="text-[11px] text-[#4c6794]">第三步专注模式：请在中心工作台观察训练并评估第二块田</p>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
-                    onClick={previousStep}
-                  >
-                    上一步
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
-                    disabled={!canNext}
-                    onClick={nextStep}
-                  >
-                    下一步
-                  </button>
-                </div>
-              </div>
+        {isCorrectionStep &&
+          renderWorkbenchStage(
+            "第四步专注模式：请在中心工作台完成第二块田纠错",
+            <StepCorrect
+              predictions={fieldBPredictions}
+              reviews={fieldBReviews}
+              step4Score={step4Score}
+              correctCount={step4CorrectCount}
+              onReview={(sampleId, judgment) =>
+                setFieldBReviews((previous) => ({ ...previous, [sampleId]: judgment }))
+              }
+            />,
+          )}
 
-              <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
-                <StepTrainTest
-                  trainProgress={trainProgress}
-                  step2Score={step2Score}
-                  step2Errors={step2Errors}
-                  trainingSetQuality={trainingQuality}
-                  targetAccuracy={secondFieldTargetAccuracy}
-                  predictions={fieldBPredictions}
-                  confusion={fieldBConfusion}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isCorrectionStep && (
-          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
-            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
-              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
-                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
-                  {step + 1}/{FARM_STEPS.length}
-                </span>
-                <p className="text-[11px] text-[#4c6794]">第四步专注模式：请在中心工作台完成第二块田纠错</p>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
-                    onClick={previousStep}
-                  >
-                    上一步
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
-                    disabled={!canNext}
-                    onClick={nextStep}
-                  >
-                    下一步
-                  </button>
-                </div>
-              </div>
-
-              <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
-                <StepCorrect
-                  predictions={fieldBPredictions}
-                  reviews={fieldBReviews}
-                  step4Score={step4Score}
-                  correctCount={step4CorrectCount}
-                  onReview={(sampleId, judgment) =>
-                    setFieldBReviews((previous) => ({ ...previous, [sampleId]: judgment }))
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isTuneStep && (
-          <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
-            <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
-              <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
-                <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
-                  {step + 1}/{FARM_STEPS.length}
-                </span>
-                <p className="text-[11px] text-[#4c6794]">第五步专注模式：请在中心工作台完成调参并测试第三块田</p>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full border border-[#bdcfee] bg-[#eef4ff] px-3 py-1.5 text-[11px] font-semibold text-[#3f618f]"
-                    onClick={previousStep}
-                  >
-                    上一步
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full bg-[#f0c27a] px-3 py-1.5 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#a5b1c8] disabled:text-[#5f6a84]"
-                    disabled={!canNext}
-                    onClick={nextStep}
-                  >
-                    {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
-                <StepTuneFinal
-                  dataAugment={dataAugment}
-                  layers={layers}
-                  learningRate={learningRate}
-                  onDataAugmentChange={setDataAugment}
-                  onLayersChange={setLayers}
-                  onLearningRateChange={setLearningRate}
-                  onRun={runFinalSimulation}
-                  step2Score={step2Score}
-                  step4Score={step4Score}
-                  trainingSetQuality={trainingQuality}
-                  finalResult={finalResult}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {isTuneStep &&
+          renderWorkbenchStage(
+            "第五步专注模式：请在中心工作台完成调参并测试第三块田",
+            <StepTuneFinal
+              dataAugment={dataAugment}
+              layers={layers}
+              learningRate={learningRate}
+              onDataAugmentChange={setDataAugment}
+              onLayersChange={setLayers}
+              onLearningRateChange={setLearningRate}
+              onRun={runFinalSimulation}
+              step2Score={step2Score}
+              step4Score={step4Score}
+              trainingSetQuality={trainingQuality}
+              finalResult={finalResult}
+              activeHint={activeTuneHint}
+              onExplain={handleTuneHintSelect}
+            />,
+          )}
       </div>
 
       {!isCenterWorkbenchStep && (
