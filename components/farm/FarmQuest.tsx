@@ -22,7 +22,6 @@ import {
   calculateStep4Score,
   calculateTrainingSetQuality,
   countLabeledSamples,
-  generateLossSeries,
 } from "@/lib/farm/scoring";
 import type { FinalSimulationResult, ModelJudgment, RiceLabel } from "@/lib/farm/types";
 import AssistantNarrator from "@/components/AssistantNarrator";
@@ -40,7 +39,7 @@ interface FarmQuestProps {
   playerName: string;
   playerStyle: string;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (summary: { answerRate: number; completedAt: string }) => void;
 }
 
 const FARM_ASSISTANT_MESSAGES = {
@@ -302,16 +301,9 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
     const thirdFieldPredictions = buildPredictions(FIELD_C_SAMPLES, score.finalAccuracy, 37);
     const thirdFieldConfusion = toConfusionMetrics(thirdFieldPredictions);
-    const lossPoints = generateLossSeries({
-      step2Score,
-      step4Score,
-      trainingSetQuality: trainingQuality,
-      finalScore: score,
-    });
 
     setFinalResult({
       score,
-      lossPoints,
       thirdFieldPredictions,
       thirdFieldConfusion,
     });
@@ -334,7 +326,10 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     }
 
     if (step === FARM_STEPS.length - 1) {
-      onComplete();
+      onComplete({
+        answerRate: finalResult?.score.finalAccuracy ?? 0,
+        completedAt: new Date().toISOString(),
+      });
       return;
     }
 

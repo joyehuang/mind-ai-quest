@@ -7,7 +7,11 @@ import FarmPrologue from "@/components/farm/FarmPrologue";
 import FarmQuest from "@/components/farm/FarmQuest";
 import WenshugeQuest from "@/components/wenshuge/WenshugeQuest";
 import { FARM_PROLOGUE_STORAGE_KEY } from "@/lib/farm/prologue";
-import { FARM_KNOWLEDGE_STORAGE_KEY } from "@/lib/farm/terminology";
+import {
+  FARM_CERTIFICATE_STORAGE_KEY,
+  FARM_KNOWLEDGE_STORAGE_KEY,
+  type FarmCertificateSnapshot,
+} from "@/lib/farm/terminology";
 
 type Scene =
   | "landing"
@@ -75,6 +79,23 @@ function subscribeFarmKnowledgeSeen(callback: () => void) {
   };
 }
 
+function readFarmCertificate() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(FARM_CERTIFICATE_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as FarmCertificateSnapshot;
+  } catch {
+    return null;
+  }
+}
+
 function getVideoMimeType(src: string) {
   if (src.endsWith(".webm")) {
     return "video/webm";
@@ -119,6 +140,12 @@ export default function Home() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(FARM_KNOWLEDGE_STORAGE_KEY, "true");
       window.dispatchEvent(new Event(FARM_KNOWLEDGE_EVENT));
+    }
+  }
+
+  function saveFarmCertificate(snapshot: FarmCertificateSnapshot) {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(FARM_CERTIFICATE_STORAGE_KEY, JSON.stringify(snapshot));
     }
   }
 
@@ -196,6 +223,7 @@ export default function Home() {
     return (
       <FarmKnowledgeReveal
         playerName={trimmedName}
+        certificate={readFarmCertificate()}
         returnLabel={farmEntryOrigin === "landing" ? "返回首页" : "返回关卡选择"}
         onSeen={markFarmKnowledgeSeen}
         onBack={() => setScene(farmEntryOrigin)}
@@ -210,8 +238,14 @@ export default function Home() {
           playerName={name}
           playerStyle={style}
           onBack={() => setScene(farmEntryOrigin)}
-          onComplete={() => {
+          onComplete={(summary) => {
             setCompletedFarm(true);
+            saveFarmCertificate({
+              playerName: name.trim() || "小老师",
+              levelName: "关卡1：保护我们的稻田",
+              answerRate: summary.answerRate,
+              completedAt: summary.completedAt,
+            });
             setScene("farm-reveal");
           }}
         />

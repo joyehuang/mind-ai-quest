@@ -1,6 +1,5 @@
 ﻿"use client";
 
-import LossChart from "@/components/farm/LossChart";
 import { toPercent } from "@/lib/farm/scoring";
 import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 import type { FinalSimulationResult } from "@/lib/farm/types";
@@ -165,8 +164,6 @@ export default function StepTuneFinal({
           <div className="rounded-2xl border border-[#d0dbee] bg-white p-4 text-sm leading-7 text-[#3c4f79]">
             你给小麦选的技能，会影响它在新稻田里会不会更稳。毕业考答对率越高，说明小麦越会把学到的办法带去新地方使用。
           </div>
-
-          <LossChart points={finalResult.lossPoints} />
 
           <div className="overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white p-3">
             <table className="w-full min-w-[620px] text-left text-sm">

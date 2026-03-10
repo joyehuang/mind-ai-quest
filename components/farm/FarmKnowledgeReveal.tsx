@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { FARM_KNOWLEDGE_CARDS } from "@/lib/farm/terminology";
+import FarmCertificateCard from "@/components/farm/FarmCertificateCard";
+import { FARM_KNOWLEDGE_CARDS, type FarmCertificateSnapshot } from "@/lib/farm/terminology";
 
 interface FarmKnowledgeRevealProps {
   playerName: string;
+  certificate: FarmCertificateSnapshot | null;
   returnLabel: string;
   onSeen: () => void;
   onBack: () => void;
@@ -12,6 +14,7 @@ interface FarmKnowledgeRevealProps {
 
 export default function FarmKnowledgeReveal({
   playerName,
+  certificate,
   returnLabel,
   onSeen,
   onBack,
@@ -25,6 +28,18 @@ export default function FarmKnowledgeReveal({
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#f8f0c8_0%,#f0dfaf_28%,#d8c28a_54%,#8e7447_100%)] px-4 py-6 text-[#442f18] sm:px-6">
       <div className="mx-auto max-w-6xl space-y-5">
+        {certificate ? (
+          <FarmCertificateCard certificate={certificate} />
+        ) : (
+          <section className="rounded-[30px] border border-[#d7bb7a] bg-[linear-gradient(180deg,rgba(255,250,236,0.98),rgba(248,236,199,0.96))] p-5 shadow-[0_24px_50px_rgba(76,54,20,0.18)] sm:p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8b6531]">结业证书</p>
+            <h2 className="font-display mt-2 text-2xl text-[#53371b] sm:text-3xl">AI小当家·结业证书</h2>
+            <p className="mt-3 text-sm leading-7 text-[#6b4b21]">
+              这次还没有找到证书快照。等你完整通关一次后，这里会自动生成你的结业证书图片。
+            </p>
+          </section>
+        )}
+
         <section className="relative overflow-hidden rounded-[30px] border border-[#d7bb7a] bg-[linear-gradient(135deg,rgba(255,249,231,0.98),rgba(248,236,197,0.96))] p-5 shadow-[0_28px_60px_rgba(64,45,18,0.2)] sm:p-7">
           <div className="absolute -right-10 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(255,228,157,0.68),rgba(255,228,157,0))]" />
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8b6531]">彩蛋揭秘</p>

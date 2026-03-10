@@ -1,4 +1,5 @@
 export const FARM_KNOWLEDGE_STORAGE_KEY = "mind-ai:farm-knowledge-seen";
+export const FARM_CERTIFICATE_STORAGE_KEY = "mind-ai:farm-certificate";
 
 export const FARM_METAPHOR_LABELS = {
   teaching: "教小麦认东西",
@@ -24,6 +25,13 @@ export interface FarmKnowledgeCard {
   realTerm: string;
   title: string;
   description: string;
+}
+
+export interface FarmCertificateSnapshot {
+  playerName: string;
+  levelName: string;
+  answerRate: number;
+  completedAt: string;
 }
 
 export const FARM_KNOWLEDGE_CARDS: FarmKnowledgeCard[] = [

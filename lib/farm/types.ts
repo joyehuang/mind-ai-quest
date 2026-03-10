@@ -71,7 +71,6 @@ export type ModelJudgment = "model_correct" | "model_wrong";
 
 export interface FinalSimulationResult {
   score: FinalScore;
-  lossPoints: LossPoint[];
   thirdFieldPredictions: PredictionRecord[];
   thirdFieldConfusion: ConfusionMetrics;
 }
