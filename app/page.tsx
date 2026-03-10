@@ -1,9 +1,11 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import AssistantNarrator from "@/components/AssistantNarrator";
+import FarmPrologue from "@/components/farm/FarmPrologue";
 import FarmQuest from "@/components/farm/FarmQuest";
 import WenshugeQuest from "@/components/wenshuge/WenshugeQuest";
+import { FARM_PROLOGUE_STORAGE_KEY } from "@/lib/farm/prologue";
 
 type Scene = "landing" | "intro" | "select" | "brief-farm" | "farm" | "brief-wenshuge" | "wenshuge";
 
@@ -14,6 +16,30 @@ const STYLE_HINTS: Record<(typeof STYLE_OPTIONS)[number], string> = {
   工程师: "擅长调参与验证，稳步提升模型",
   探险家: "擅长尝试新思路，突破旧规则",
 };
+const FARM_PROLOGUE_EVENT = "farm-prologue-state-change";
+
+function readFarmPrologueSeen() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(FARM_PROLOGUE_STORAGE_KEY) === "true";
+}
+
+function subscribeFarmPrologueSeen(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handleChange = () => callback();
+  window.addEventListener("storage", handleChange);
+  window.addEventListener(FARM_PROLOGUE_EVENT, handleChange);
+
+  return () => {
+    window.removeEventListener("storage", handleChange);
+    window.removeEventListener(FARM_PROLOGUE_EVENT, handleChange);
+  };
+}
 
 function getVideoMimeType(src: string) {
   if (src.endsWith(".webm")) {
@@ -31,6 +57,8 @@ export default function Home() {
   const [style, setStyle] = useState(STYLE_OPTIONS[0]);
   const [completedFarm, setCompletedFarm] = useState(false);
   const [completedWenshuge, setCompletedWenshuge] = useState(false);
+  const [farmEntryOrigin, setFarmEntryOrigin] = useState<"landing" | "select">("landing");
+  const hasSeenFarmPrologue = useSyncExternalStore(subscribeFarmPrologueSeen, readFarmPrologueSeen, () => false);
   const completedCount = Number(completedFarm) + Number(completedWenshuge);
   const progressPercent = (completedCount / 2) * 100;
   const trimmedName = name.trim();
@@ -41,48 +69,34 @@ export default function Home() {
     ? `太好了，${trimmedName}！你现在是“${style}”。三个风格难度一样，选喜欢的就好。准备好就点右下角进入游戏。`
     : "欢迎来到 AI小当家！先输入你的名字，再选一个喜欢的角色风格，最后点右下角进入游戏。";
 
+  function currentFarmPrologueSeenState() {
+    return readFarmPrologueSeen();
+  }
+
+  function markFarmPrologueSeen() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(FARM_PROLOGUE_STORAGE_KEY, "true");
+      window.dispatchEvent(new Event(FARM_PROLOGUE_EVENT));
+    }
+  }
+
+  function handleEnterFarm(options?: { origin?: "landing" | "select"; forcePrologue?: boolean }) {
+    const origin = options?.origin ?? "landing";
+    const shouldForcePrologue = options?.forcePrologue ?? false;
+    const seen = currentFarmPrologueSeenState();
+
+    setFarmEntryOrigin(origin);
+    setScene(!shouldForcePrologue && seen ? "farm" : "brief-farm");
+  }
+
   if (scene === "brief-farm") {
     return (
-      <div className="min-h-screen w-screen bg-[radial-gradient(circle_at_20%_18%,#f6f0e2_0%,#ebe1ca_45%,#d7c5a1_100%)] px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-5xl space-y-4">
-          <header className="rounded-3xl border border-[#d2bf9a] bg-[rgba(255,252,244,0.9)] p-5 shadow-[0_16px_36px_rgba(78,60,34,0.14)]">
-            <p className="text-xs uppercase tracking-[0.22em] text-[#7f6640]">Story Briefing</p>
-            <h1 className="font-display mt-2 text-3xl text-[#4f3a1c]">主题关卡1：保护我们的稻田</h1>
-            <p className="mt-2 text-sm text-[#725b3b]">
-              进入任务前，先听 {AI_ASSISTANT_TITLE} 给你的背景概述。
-            </p>
-          </header>
-
-          <article className="rounded-3xl border border-[#cfb78e] bg-[rgba(255,249,238,0.94)] p-5 shadow-[0_14px_30px_rgba(82,62,34,0.12)]">
-            <p className="text-sm font-semibold text-[#513a1f]">
-              {AI_ASSISTANT_TITLE} {name}：
-            </p>
-            <p className="mt-2 text-sm leading-7 text-[#694f2b]">
-              最近天气又热又潮，稻田里有些稻种看起来不太对劲，但只靠眼睛很难一下子全找出来。你要先收集线索，再教会 AI 分辨“健康”和“异常”，最后帮助村民更早发现问题，保护收成。
-            </p>
-            <p className="mt-2 text-sm leading-7 text-[#694f2b]">
-              这关不用一次就全对。你可以一边试一边改，让 AI 越来越聪明，最后在第三块田表现更好。
-            </p>
-          </article>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              className="rounded-xl border border-[#c8b28c] bg-[rgba(255,255,255,0.8)] px-4 py-2 text-sm text-[#61492a]"
-              onClick={() => setScene("select")}
-            >
-              返回关卡选择
-            </button>
-            <button
-              type="button"
-              className="rounded-xl bg-[#8b5e2f] px-5 py-2 text-sm font-semibold text-white"
-              onClick={() => setScene("farm")}
-            >
-              我明白了，开始关卡1
-            </button>
-          </div>
-        </div>
-      </div>
+      <FarmPrologue
+        playerName={trimmedName}
+        onBack={() => setScene(farmEntryOrigin)}
+        onSeen={markFarmPrologueSeen}
+        onStartGame={() => setScene("farm")}
+      />
     );
   }
 
@@ -137,10 +151,10 @@ export default function Home() {
         <FarmQuest
           playerName={name}
           playerStyle={style}
-          onBack={() => setScene("landing")}
+          onBack={() => setScene(farmEntryOrigin)}
           onComplete={() => {
             setCompletedFarm(true);
-            setScene("landing");
+            setScene(farmEntryOrigin);
           }}
         />
       </div>
@@ -182,8 +196,6 @@ export default function Home() {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(130deg,rgba(8,9,12,0.04)_0%,rgba(8,9,12,0.18)_46%,rgba(8,9,12,0.34)_100%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_34%,rgba(245,223,180,0.2)_0%,rgba(245,223,180,0)_60%)]" />
 
-      
-
       {scene === "landing" && (
         <>
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
@@ -217,10 +229,19 @@ export default function Home() {
                 type="button"
                 className="mt-5 h-14 rounded-2xl bg-[linear-gradient(135deg,#f4c873_0%,#d48b2f_100%)] px-12 text-base font-semibold text-[#2f1f0f] shadow-[0_14px_30px_rgba(93,63,28,0.36)] transition hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#cab79e] disabled:text-[#7a6548]"
                 disabled={!trimmedName}
-                onClick={() => setScene("farm")}
+                onClick={() => handleEnterFarm({ origin: "landing" })}
               >
-                开始闯关
+                {hasSeenFarmPrologue ? "直接进入关卡1" : "开始闯关"}
               </button>
+              {hasSeenFarmPrologue ? (
+                <button
+                  type="button"
+                  className="mt-3 text-sm font-semibold text-[#7f5625] underline decoration-[#b37c39]/55 underline-offset-4 transition hover:text-[#5f3d12]"
+                  onClick={() => handleEnterFarm({ origin: "landing", forcePrologue: true })}
+                >
+                  重看小麦的开场序幕
+                </button>
+              ) : null}
             </div>
           </div>
         </>
@@ -319,15 +340,35 @@ export default function Home() {
             </button>
           </div>
 
-          <button
-            type="button"
-            className="pointer-events-auto absolute bottom-4 left-4 w-[min(46vw,360px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]"
-            onClick={() => setScene("brief-farm")}
-          >
+          <div className="pointer-events-auto absolute bottom-4 left-4 w-[min(46vw,360px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
             <p className="text-xs text-[#e0cda8]">基础任务</p>
             <p className="mt-1 font-display text-2xl">关卡1：保护稻田</p>
-            <p className="mt-1 text-xs text-[#e9dcc3]">{completedFarm ? "已完成，可再次挑战" : "开始训练你的稻田小助手"}</p>
-          </button>
+            <p className="mt-1 text-xs text-[#e9dcc3]">
+              {hasSeenFarmPrologue
+                ? "已看过序幕，可直接进入，也可以重看"
+                : completedFarm
+                  ? "已完成，可再次挑战"
+                  : "先看小麦的序幕，再开始训练"}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="min-h-11 flex-1 rounded-xl bg-[rgba(255,243,218,0.96)] px-4 py-2 text-sm font-semibold text-[#4a3422]"
+                onClick={() => handleEnterFarm({ origin: "select" })}
+              >
+                {hasSeenFarmPrologue ? "直接进入" : "观看序幕"}
+              </button>
+              {hasSeenFarmPrologue ? (
+                <button
+                  type="button"
+                  className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
+                  onClick={() => handleEnterFarm({ origin: "select", forcePrologue: true })}
+                >
+                  重看序幕
+                </button>
+              ) : null}
+            </div>
+          </div>
 
           <button
             type="button"
