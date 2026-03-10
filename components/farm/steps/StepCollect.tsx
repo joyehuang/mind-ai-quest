@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import type { FarmSample } from "@/lib/farm/types";
+import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 
 interface StepCollectProps {
   collectedSamples: FarmSample[];
@@ -26,9 +27,9 @@ export default function StepCollect({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#b8c8e6] bg-[#edf2ff] p-4">
-        <p className="text-sm font-medium text-[#24385d]">第一步：第一块田收集数据（不显示标签）</p>
+        <p className="text-sm font-medium text-[#24385d]">第一步：在第一块田里挑教材</p>
         <p className="mt-1 text-lg font-semibold text-[#1f3358]">
-          候选 {poolSize} 株，已收集 {collectedIds.length}/{target}
+          候选 {poolSize} 株，已挑到 {collectedIds.length}/{target}
         </p>
         <div className="mt-3 h-3 rounded-full bg-[#d8e1f3] p-[2px]">
           <div
@@ -37,10 +38,10 @@ export default function StepCollect({
           />
         </div>
         <p className="mt-2 text-xs text-[#4e5e82]">
-          请从 {poolSize} 个候选样本中挑选 {target} 个作为训练集。训练集质量会影响后续测试准确率。
+          请从 {poolSize} 个候选样本中挑选 {target} 个当教材。教材越丰富，小麦后面的小测验就越稳。
         </p>
         <p className="mt-1 text-xs text-[#4e5e82]">
-          当前训练集质量（覆盖度+平衡度）：{Math.round(trainingQuality * 100)}%
+          当前{FARM_METAPHOR_LABELS.textbookReadiness}（覆盖度+平衡度）：{Math.round(trainingQuality * 100)}%
         </p>
         {collectMessage && (
           <p className="mt-2 rounded-lg border border-[#e3b77a] bg-[#fff6e8] px-2 py-1 text-xs text-[#8a5b24]">
@@ -50,9 +51,9 @@ export default function StepCollect({
       </div>
 
       <div className="rounded-2xl border border-[#d0dbee] bg-white p-4">
-        <p className="text-sm font-semibold text-[#263d67]">3D 交互说明</p>
+        <p className="text-sm font-semibold text-[#263d67]">3D 操作说明</p>
         <p className="mt-2 text-sm text-[#5b6d93]">
-          直接在上方 3D 第一块田中点击稻株来加入/移除训练集，鼠标悬停即可查看特征信息。
+          直接在上方 3D 第一块田里点击稻株，把它放进或拿出教材篮；鼠标悬停时还能先看线索。
         </p>
         {hoveredSample ? (
           <div className="mt-3 rounded-xl border border-[#c9d6ee] bg-[#f3f7ff] p-3 text-sm text-[#32466d]">
@@ -63,16 +64,16 @@ export default function StepCollect({
             <p>虫害：{hoveredSample.profile.pest}</p>
             <p>稻穗：{hoveredSample.profile.panicle}</p>
             <p className="mt-2 text-xs font-semibold text-[#2d4774]">
-              当前状态：{collectedIds.includes(hoveredSample.id) ? "已加入训练集（再次点击可移除）" : "未加入训练集（点击可加入）"}
+              当前状态：{collectedIds.includes(hoveredSample.id) ? "已经在教材篮里（再次点击可放回）" : "还没进教材篮（点击可加入）"}
             </p>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-[#5b6d93]">把鼠标放在 3D 稻株上，会显示该稻种的完整特征描述。</p>
+          <p className="mt-3 text-sm text-[#5b6d93]">把鼠标放在 3D 稻株上，会显示这株稻子的完整线索描述。</p>
         )}
       </div>
 
       <div className="rounded-2xl border border-[#d0dbee] bg-white p-4">
-        <p className="text-sm font-semibold text-[#263d67]">已选训练集（来自 3D 点击）</p>
+        <p className="text-sm font-semibold text-[#263d67]">已挑好的教材（来自 3D 点击）</p>
         {collectedSamples.length > 0 ? (
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {collectedSamples.map((sample) => (
@@ -85,7 +86,7 @@ export default function StepCollect({
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-sm text-[#5b6c90]">还没有选中样本，请在上方 3D 稻田中点击稻株开始收集。</p>
+          <p className="mt-3 text-sm text-[#5b6c90]">还没有挑中教材，请在上方 3D 稻田里点击稻株开始收集。</p>
         )}
       </div>
     </div>

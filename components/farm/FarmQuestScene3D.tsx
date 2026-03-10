@@ -778,7 +778,7 @@ export default function FarmQuestScene3D({
           <p>虫害：{hoveredSample.profile.pest}</p>
           <p>稻穗：{hoveredSample.profile.panicle}</p>
           <p className={`mt-1 font-semibold ${immersive ? "text-[#aecaef]" : "text-[#2d4775]"}`}>
-            {collectedIds.includes(hoveredSample.id) ? "点击可移除训练集" : "点击可加入训练集"}
+            {collectedIds.includes(hoveredSample.id) ? "点击可放回教材篮" : "点击可放进教材篮"}
           </p>
         </div>
       )}

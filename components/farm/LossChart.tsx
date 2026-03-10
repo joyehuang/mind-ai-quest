@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useMemo } from "react";
+import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 import type { LossPoint } from "@/lib/farm/types";
 
 interface LossChartProps {
@@ -60,10 +61,10 @@ export default function LossChart({ points }: LossChartProps) {
     <div className="rounded-2xl border border-[#d2dcee] bg-white p-4">
       <div className="mb-3 flex flex-wrap gap-4 text-xs text-[#3d5078]">
         <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-6 rounded-full bg-[#4d86e6]" /> 训练集 Loss
+          <span className="h-2 w-6 rounded-full bg-[#4d86e6]" /> 旧练习题上的{FARM_METAPHOR_LABELS.confusionLevel}
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-6 rounded-full bg-[#cf7b4e]" /> 测试集 Loss
+          <span className="h-2 w-6 rounded-full bg-[#cf7b4e]" /> 新考题上的{FARM_METAPHOR_LABELS.confusionLevel}
         </span>
       </div>
 
@@ -71,7 +72,7 @@ export default function LossChart({ points }: LossChartProps) {
         className="h-auto w-full"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
         role="img"
-        aria-label="训练与测试 loss 曲线"
+        aria-label="小麦复习时的犯错指数变化曲线"
       >
         <rect
           x={PADDING.left}
@@ -110,8 +111,8 @@ export default function LossChart({ points }: LossChartProps) {
           </>
         )}
 
-        <text x={CHART_WIDTH / 2 - 45} y={CHART_HEIGHT - 8} fontSize="12" fill="#66789f">
-          训练轮次 Epoch
+        <text x={CHART_WIDTH / 2 - 36} y={CHART_HEIGHT - 8} fontSize="12" fill="#66789f">
+          {FARM_METAPHOR_LABELS.reviewRounds}
         </text>
         <text
           x={18}
@@ -121,7 +122,7 @@ export default function LossChart({ points }: LossChartProps) {
           fontSize="12"
           fill="#66789f"
         >
-          Loss
+          {FARM_METAPHOR_LABELS.mistakeIndex}
         </text>
       </svg>
     </div>

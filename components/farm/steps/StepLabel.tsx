@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { FarmSample, RiceLabel } from "@/lib/farm/types";
+import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 
 interface StepLabelProps {
   samples: FarmSample[];
@@ -14,7 +15,7 @@ interface StepLabelProps {
 }
 
 function labelText(label: RiceLabel) {
-  return label === "healthy" ? "健康" : "不健康";
+  return label === "healthy" ? "健康贴纸" : "不健康贴纸";
 }
 
 const SAMPLE_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"] as const;
@@ -82,8 +83,8 @@ export default function StepLabel({
     <div className={`h-full min-h-0 ${className ?? ""}`}>
       <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[286px_minmax(0,1fr)]">
         <aside className="flex min-h-0 flex-col rounded-2xl border border-[#cfd9eb] bg-white p-4">
-          <p className="text-sm font-semibold text-[#263e67]">已收集样本</p>
-          <p className="mt-1 text-xs text-[#5e6e94]">标注进度 {labeledCount}/{samples.length}</p>
+          <p className="text-sm font-semibold text-[#263e67]">教材篮</p>
+          <p className="mt-1 text-xs text-[#5e6e94]">{FARM_METAPHOR_LABELS.answerSticker}进度 {labeledCount}/{samples.length}</p>
 
           <div
             className="mt-3 min-h-0 flex-1 space-y-2 overflow-auto pr-1"
@@ -117,7 +118,7 @@ export default function StepLabel({
 
                     <div className="min-w-0 flex-1">
                       <p className="truncate">{sample.name}</p>
-                      <p className="text-[11px] text-[#6b7a9f]">{current ? labelText(current) : "未标注"}</p>
+                      <p className="text-[11px] text-[#6b7a9f]">{current ? labelText(current) : "还没贴贴纸"}</p>
                     </div>
                   </div>
                 </button>
@@ -129,8 +130,8 @@ export default function StepLabel({
         <section className="flex min-h-0 flex-col rounded-2xl border border-[#d0dbee] bg-white p-4">
           {activeSample ? (
             <>
-              <p className="text-sm font-semibold text-[#263f69]">第二步：人工打标签</p>
-              <p className="mt-1 text-xs text-[#5e7097]">同屏查看图片和特征，直接点击下方按钮完成标注。</p>
+              <p className="text-sm font-semibold text-[#263f69]">第二步：给练习题贴答案贴纸</p>
+              <p className="mt-1 text-xs text-[#5e7097]">同屏查看图片和特征，再给这株稻子选一张答案贴纸。</p>
 
               <div className="mt-3 flex min-h-0 flex-1 flex-col rounded-2xl border border-[#d0dcee] bg-[#f3f7ff] p-3 sm:p-4">
                 <p className="text-sm font-semibold text-[#263e67]">{activeSample.name}</p>
@@ -157,7 +158,7 @@ export default function StepLabel({
                             : "border-[#ccd7ec] bg-[#eef2fb] text-[#7d88a6]"
                       }`}
                     >
-                      当前标签：{labels[activeSample.id] ? labelText(labels[activeSample.id]) : "未标注"}
+                      当前答案贴纸：{labels[activeSample.id] ? labelText(labels[activeSample.id]) : "还没贴贴纸"}
                     </div>
                   </div>
 
@@ -176,20 +177,20 @@ export default function StepLabel({
                     className="rounded-xl border border-[#da856d] bg-[#fff1ec] px-3 py-3 text-sm font-semibold text-[#a6472f]"
                     onClick={() => onLabel(activeSample.id, "unhealthy")}
                   >
-                    标为不健康
+                    贴上不健康贴纸
                   </button>
                   <button
                     type="button"
                     className="rounded-xl border border-[#78a7e8] bg-[#edf3ff] px-3 py-3 text-sm font-semibold text-[#2b4f8e]"
                     onClick={() => onLabel(activeSample.id, "healthy")}
                   >
-                    标为健康
+                    贴上健康贴纸
                   </button>
                 </div>
               </div>
             </>
           ) : (
-            <p className="text-sm text-[#60749a]">先在第一步收集至少 10 个样本。</p>
+            <p className="text-sm text-[#60749a]">先在第一步挑到至少 10 株教材。</p>
           )}
         </section>
       </div>

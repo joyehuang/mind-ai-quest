@@ -26,6 +26,7 @@ import {
 } from "@/lib/farm/scoring";
 import type { FinalSimulationResult, ModelJudgment, RiceLabel } from "@/lib/farm/types";
 import AssistantNarrator from "@/components/AssistantNarrator";
+import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 import StepCorrect from "./steps/StepCorrect";
 import StepLabel from "./steps/StepLabel";
 import StepTrainTest from "./steps/StepTrainTest";
@@ -43,12 +44,12 @@ interface FarmQuestProps {
 }
 
 const FARM_ASSISTANT_MESSAGES = {
-  collect: "嘿！请你先点击页面上的稻子，帮我先收集一些稻子样本吧，一共需要收集10个哦！",
-  label: "你是聪明的小侦探，请仔细阅读文字和图片，判断这个稻子属于健康还是不健康的稻子哦！",
-  trained: "现在你已经靠自己的努力训练出了第一个模型啦！但是好像存在一些错误！我们一起去检查一下吧",
-  correct: "现在我们看看你训练出来的模型和真实数据的差异吧！点击按钮来判断小麦是否犯错了哦！",
+  collect: "嘿！请你先点击页面上的稻子，帮我先挑一些给小麦看的教材吧，一共需要收集10个哦！",
+  label: "你是聪明的小侦探，请仔细阅读文字和图片，给这个稻子贴上健康或不健康的答案贴纸哦！",
+  trained: `现在你已经帮小麦搭好了第一个${FARM_METAPHOR_LABELS.brain}啦！不过它偶尔还会猜错，我们一起去检查一下吧！`,
+  correct: `现在我们看看${FARM_METAPHOR_LABELS.guess}和真正情况差在哪里吧！点击按钮来判断小麦有没有猜对哦！`,
   tune: "现在页面上有几个小技能，可以帮助你优化小麦，点击看看吧！",
-  complete: "太厉害了！我现在能更好地预测稻子的好坏啦！",
+  complete: "太厉害了！我现在能更好地分辨稻子的好坏啦！",
   tuneHints: {
     augment: "这个技能可以让小麦把同一张图翻转、放大、变色再多看几遍，记得更牢哦！",
     layers: "这个技能代表了小麦脑子的层数，建议选择3层哦。太少了小麦会想得太简单，太多了反而会把自己绕晕",
@@ -225,7 +226,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     setCollectedIds((previous) => {
       const exists = previous.includes(sampleId);
       if (!exists && previous.length >= TRAINING_TARGET) {
-        setCollectMessage("训练集已满 10 个，请先移除一个样本再添加新的。");
+        setCollectMessage("教材篮已经装满 10 株了，请先放回一株再挑新的。");
         return previous;
       }
 
@@ -238,7 +239,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
         return filtered;
       });
 
-      setCollectMessage(exists ? "已从训练集中移除该样本。" : "已加入训练集。");
+      setCollectMessage(exists ? "已把这株稻子放回教材篮。" : "已把这株稻子放进教材篮。");
       return next;
     });
     handleHoverSample(sampleId);
@@ -409,7 +410,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
                 disabled={!canNext}
                 onClick={nextStep}
               >
-                {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
+                {step === FARM_STEPS.length - 1 ? "完成关卡，查看彩蛋" : "下一步"}
               </button>
             </div>
           </div>
@@ -471,7 +472,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
                 />
               </div>
               <p className="mt-1 text-[11px] text-[#d9e7ff]">
-                稻子样本：{collectedIds.length}/{TRAINING_TARGET}
+                教材进度：{collectedIds.length}/{TRAINING_TARGET}
               </p>
               {collectMessage && <p className="mt-1 text-[10px] text-[#ffe1bd]">{collectMessage}</p>}
             </>
@@ -507,7 +508,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
             />
           </div>
           <p className="mt-1.5 text-[10px] text-[#aebedf]">
-            训练集 {TRAINING_TARGET} · 第二块田 {SECOND_FIELD_TARGET} · 第三块田 {THIRD_FIELD_TARGET}
+            教材 {TRAINING_TARGET} 株 · 第二块田检查 {SECOND_FIELD_TARGET} 株 · 第三块田毕业考 {THIRD_FIELD_TARGET} 株
           </p>
         </div>
 
@@ -537,14 +538,14 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
               disabled={!canNext}
               onClick={nextStep}
             >
-              {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
+              {step === FARM_STEPS.length - 1 ? "完成关卡，查看彩蛋" : "下一步"}
             </button>
           </div>
         )}
 
         {isLabelStep &&
           renderWorkbenchStage(
-            "第二步专注模式：请在中心工作台完成全部样本标注",
+            "第二步专注模式：请在中心工作台给全部练习题贴上答案贴纸",
             <StepLabel
               samples={trainingSamples}
               labels={labels}
@@ -558,7 +559,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isTrainStep &&
           renderWorkbenchStage(
-            "第三步专注模式：请在中心工作台观察训练并评估第二块田",
+            "第三步专注模式：请在中心工作台看小麦复习，并挑战第二块田小测验",
             <StepTrainTest
               trainProgress={trainProgress}
               step2Score={step2Score}
@@ -572,7 +573,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isCorrectionStep &&
           renderWorkbenchStage(
-            "第四步专注模式：请在中心工作台完成第二块田纠错",
+            "第四步专注模式：请在中心工作台检查第二块田的猜测",
             <StepCorrect
               predictions={fieldBPredictions}
               reviews={fieldBReviews}
@@ -586,7 +587,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isTuneStep &&
           renderWorkbenchStage(
-            "第五步专注模式：请在中心工作台完成调参并测试第三块田",
+            "第五步专注模式：请在中心工作台给小麦加技能，并参加第三块田毕业考",
             <StepTuneFinal
               dataAugment={dataAugment}
               layers={layers}
@@ -621,7 +622,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
               disabled={!canNext}
               onClick={nextStep}
             >
-              {step === FARM_STEPS.length - 1 ? "完成关卡" : "下一步"}
+              {step === FARM_STEPS.length - 1 ? "完成关卡，查看彩蛋" : "下一步"}
             </button>
           </div>
         </div>

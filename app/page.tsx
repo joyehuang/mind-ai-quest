@@ -2,21 +2,32 @@
 
 import { useState, useSyncExternalStore } from "react";
 import AssistantNarrator from "@/components/AssistantNarrator";
+import FarmKnowledgeReveal from "@/components/farm/FarmKnowledgeReveal";
 import FarmPrologue from "@/components/farm/FarmPrologue";
 import FarmQuest from "@/components/farm/FarmQuest";
 import WenshugeQuest from "@/components/wenshuge/WenshugeQuest";
 import { FARM_PROLOGUE_STORAGE_KEY } from "@/lib/farm/prologue";
+import { FARM_KNOWLEDGE_STORAGE_KEY } from "@/lib/farm/terminology";
 
-type Scene = "landing" | "intro" | "select" | "brief-farm" | "farm" | "brief-wenshuge" | "wenshuge";
+type Scene =
+  | "landing"
+  | "intro"
+  | "select"
+  | "brief-farm"
+  | "farm"
+  | "farm-reveal"
+  | "brief-wenshuge"
+  | "wenshuge";
 
 const STYLE_OPTIONS = ["侦查员", "工程师", "探险家"];
 const AI_ASSISTANT_TITLE = "AI小助手";
 const STYLE_HINTS: Record<(typeof STYLE_OPTIONS)[number], string> = {
   侦查员: "擅长发现线索，定位异常变化",
-  工程师: "擅长调参与验证，稳步提升模型",
+  工程师: "擅长给小麦试技能，让判断越来越稳",
   探险家: "擅长尝试新思路，突破旧规则",
 };
 const FARM_PROLOGUE_EVENT = "farm-prologue-state-change";
+const FARM_KNOWLEDGE_EVENT = "farm-knowledge-state-change";
 
 function readFarmPrologueSeen() {
   if (typeof window === "undefined") {
@@ -41,6 +52,29 @@ function subscribeFarmPrologueSeen(callback: () => void) {
   };
 }
 
+function readFarmKnowledgeSeen() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(FARM_KNOWLEDGE_STORAGE_KEY) === "true";
+}
+
+function subscribeFarmKnowledgeSeen(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handleChange = () => callback();
+  window.addEventListener("storage", handleChange);
+  window.addEventListener(FARM_KNOWLEDGE_EVENT, handleChange);
+
+  return () => {
+    window.removeEventListener("storage", handleChange);
+    window.removeEventListener(FARM_KNOWLEDGE_EVENT, handleChange);
+  };
+}
+
 function getVideoMimeType(src: string) {
   if (src.endsWith(".webm")) {
     return "video/webm";
@@ -59,6 +93,7 @@ export default function Home() {
   const [completedWenshuge, setCompletedWenshuge] = useState(false);
   const [farmEntryOrigin, setFarmEntryOrigin] = useState<"landing" | "select">("landing");
   const hasSeenFarmPrologue = useSyncExternalStore(subscribeFarmPrologueSeen, readFarmPrologueSeen, () => false);
+  const hasSeenFarmKnowledge = useSyncExternalStore(subscribeFarmKnowledgeSeen, readFarmKnowledgeSeen, () => false);
   const completedCount = Number(completedFarm) + Number(completedWenshuge);
   const progressPercent = (completedCount / 2) * 100;
   const trimmedName = name.trim();
@@ -80,6 +115,13 @@ export default function Home() {
     }
   }
 
+  function markFarmKnowledgeSeen() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(FARM_KNOWLEDGE_STORAGE_KEY, "true");
+      window.dispatchEvent(new Event(FARM_KNOWLEDGE_EVENT));
+    }
+  }
+
   function handleEnterFarm(options?: { origin?: "landing" | "select"; forcePrologue?: boolean }) {
     const origin = options?.origin ?? "landing";
     const shouldForcePrologue = options?.forcePrologue ?? false;
@@ -87,6 +129,11 @@ export default function Home() {
 
     setFarmEntryOrigin(origin);
     setScene(!shouldForcePrologue && seen ? "farm" : "brief-farm");
+  }
+
+  function handleEnterFarmKnowledge(origin: "landing" | "select") {
+    setFarmEntryOrigin(origin);
+    setScene("farm-reveal");
   }
 
   if (scene === "brief-farm") {
@@ -145,6 +192,17 @@ export default function Home() {
     );
   }
 
+  if (scene === "farm-reveal") {
+    return (
+      <FarmKnowledgeReveal
+        playerName={trimmedName}
+        returnLabel={farmEntryOrigin === "landing" ? "返回首页" : "返回关卡选择"}
+        onSeen={markFarmKnowledgeSeen}
+        onBack={() => setScene(farmEntryOrigin)}
+      />
+    );
+  }
+
   if (scene === "farm") {
     return (
       <div className="h-screen w-screen overflow-hidden bg-[#08160d]">
@@ -154,7 +212,7 @@ export default function Home() {
           onBack={() => setScene(farmEntryOrigin)}
           onComplete={() => {
             setCompletedFarm(true);
-            setScene(farmEntryOrigin);
+            setScene("farm-reveal");
           }}
         />
       </div>
@@ -203,7 +261,7 @@ export default function Home() {
               <div className="flex flex-wrap justify-center gap-2 text-[11px]">
                 <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">中小学生友好</span>
                 <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">3-5 分钟一局</span>
-                <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">边玩边学 AI</span>
+                <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">边玩边学聪明办法</span>
               </div>
               <h2 className="font-display mt-4 text-4xl leading-tight text-[#5b3e16] sm:text-5xl">
                 一起成为 AI 小当家
@@ -240,6 +298,15 @@ export default function Home() {
                   onClick={() => handleEnterFarm({ origin: "landing", forcePrologue: true })}
                 >
                   重看小麦的开场序幕
+                </button>
+              ) : null}
+              {hasSeenFarmKnowledge ? (
+                <button
+                  type="button"
+                  className="mt-2 text-sm font-semibold text-[#7f5625] underline decoration-[#b37c39]/55 underline-offset-4 transition hover:text-[#5f3d12]"
+                  onClick={() => handleEnterFarmKnowledge("landing")}
+                >
+                  重看关卡1知识彩蛋
                 </button>
               ) : null}
             </div>
@@ -348,7 +415,7 @@ export default function Home() {
                 ? "已看过序幕，可直接进入，也可以重看"
                 : completedFarm
                   ? "已完成，可再次挑战"
-                  : "先看小麦的序幕，再开始训练"}
+                  : "先看小麦的序幕，再开始教小麦"}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -365,6 +432,15 @@ export default function Home() {
                   onClick={() => handleEnterFarm({ origin: "select", forcePrologue: true })}
                 >
                   重看序幕
+                </button>
+              ) : null}
+              {hasSeenFarmKnowledge ? (
+                <button
+                  type="button"
+                  className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(246,237,214,0.16)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
+                  onClick={() => handleEnterFarmKnowledge("select")}
+                >
+                  重看知识彩蛋
                 </button>
               ) : null}
             </div>

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { toPercent } from "@/lib/farm/scoring";
+import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 import type { ModelJudgment, PredictionRecord } from "@/lib/farm/types";
 
 interface StepCorrectProps {
@@ -12,7 +13,7 @@ interface StepCorrectProps {
 }
 
 function labelText(value: "healthy" | "unhealthy") {
-  return value === "healthy" ? "健康" : "不健康";
+  return value === "healthy" ? "健康稻子" : "不健康稻子";
 }
 
 export default function StepCorrect({
@@ -27,13 +28,12 @@ export default function StepCorrect({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#c8d5ec] bg-[#f2f6ff] p-4">
-        <p className="text-sm font-semibold text-[#284067]">第四步：纠错第二块田预测并做增量训练</p>
+        <p className="text-sm font-semibold text-[#284067]">第四步：帮小麦检查第二块田的猜测</p>
         <p className="mt-1 text-xs text-[#5f7097]">
-          你需要判断“模型这次判断对不对”，系统会把第二块田数据并入训练池。
+          你要看看小麦这次猜得对不对，检查完的题目也会变成它新的练习经验。
         </p>
         <p className="mt-2 text-sm text-[#3e5178]">
-          纠错进度：{reviewed}/{predictions.length}，纠错准确率：{toPercent(step4Score)}（{correctCount}/
-          {predictions.length}）
+          检查进度：{reviewed}/{predictions.length}，检查答对率：{toPercent(step4Score)}（{correctCount}/{predictions.length}）
         </p>
       </div>
 
@@ -43,8 +43,8 @@ export default function StepCorrect({
           return (
             <article key={item.sample.id} className="rounded-2xl border border-[#d0dbee] bg-white p-4">
               <p className="text-sm font-semibold text-[#284067]">{item.sample.name}</p>
-              <p className="mt-1 text-xs text-[#66779f]">模型预测：{labelText(item.predicted)}</p>
-              <p className="mt-1 text-xs text-[#66779f]">真实标签：{labelText(item.sample.groundTruth)}</p>
+              <p className="mt-1 text-xs text-[#66779f]">{FARM_METAPHOR_LABELS.guess}：{labelText(item.predicted)}</p>
+              <p className="mt-1 text-xs text-[#66779f]">真正情况：{labelText(item.sample.groundTruth)}</p>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
@@ -56,7 +56,7 @@ export default function StepCorrect({
                   }`}
                   onClick={() => onReview(item.sample.id, "model_correct")}
                 >
-                  模型判断对
+                  这次猜对了
                 </button>
                 <button
                   type="button"
@@ -67,7 +67,7 @@ export default function StepCorrect({
                   }`}
                   onClick={() => onReview(item.sample.id, "model_wrong")}
                 >
-                  模型判断错
+                  这次猜错了
                 </button>
               </div>
             </article>
