@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { createFarmProloguePanels, type FarmPrologueTone } from "@/lib/farm/prologue";
 
 interface FarmPrologueProps {
@@ -16,6 +16,9 @@ const STICKER_POSITIONS = [
   "left-4 top-[4.5rem] w-20 sm:left-6 sm:top-28 sm:w-28",
   "right-10 bottom-[6.5rem] hidden w-24 sm:block sm:w-28",
 ] as const;
+
+// 总动画时长 - 用于模拟视频播放
+const TOTAL_VIDEO_DURATION_MS = 38000; // 约38秒
 
 const TONE_STYLES: Record<
   FarmPrologueTone,
@@ -94,13 +97,14 @@ const TONE_STYLES: Record<
 
 export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }: FarmPrologueProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [autoplay, setAutoplay] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [showVideoMode, setShowVideoMode] = useState(true); // 新增：视频模式
+  const progress = useRef(0);
   const playerLabel = playerName.trim() || "你";
   const panels = useMemo(() => createFarmProloguePanels(playerLabel), [playerLabel]);
   const panel = panels[activeIndex];
   const tone = TONE_STYLES[panel.tone];
-  const autoplayDurationSeconds = Math.round(panels.slice(0, -1).reduce((total, item) => total + item.durationMs, 0) / 1000);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -115,22 +119,18 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
     return () => mediaQuery.removeEventListener("change", applyMotionPreference);
   }, []);
 
+  // 自动连续播放 - 模拟视频效果
   useEffect(() => {
-    if (!autoplay || activeIndex >= panels.length - 1) {
+    if (!isPlaying || !showVideoMode || activeIndex >= panels.length - 1) {
       return;
     }
 
-    const willAdvanceToLast = activeIndex === panels.length - 2;
-
     const timer = window.setTimeout(() => {
-      if (willAdvanceToLast) {
-        setAutoplay(false);
-      }
       setActiveIndex((current) => Math.min(current + 1, panels.length - 1));
     }, panels[activeIndex].durationMs);
 
     return () => window.clearTimeout(timer);
-  }, [activeIndex, autoplay, panels]);
+  }, [activeIndex, isPlaying, showVideoMode, panels]);
 
   function handleNext() {
     if (activeIndex === panels.length - 1) {
@@ -138,11 +138,6 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
       onStartGame();
       return;
     }
-
-    if (autoplay && activeIndex === panels.length - 2) {
-      setAutoplay(false);
-    }
-
     setActiveIndex((current) => Math.min(current + 1, panels.length - 1));
   }
 
@@ -155,6 +150,10 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
     onStartGame();
   }
 
+  function togglePlayPause() {
+    setIsPlaying((current) => !current);
+  }
+
   return (
     <section className={`relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 sm:py-6 ${tone.backdrop}`}>
       <div className="farm-prologue-halftone absolute inset-0 opacity-20" />
@@ -164,16 +163,16 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
       <div className="relative mx-auto flex max-w-6xl flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1.18fr)_360px] lg:items-stretch">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-white/30 bg-[rgba(16,12,8,0.18)] px-4 py-3 text-white shadow-[0_18px_40px_rgba(14,8,4,0.18)] backdrop-blur-sm lg:col-span-2">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">Level 1 Prologue</p>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">Level 1 Prologue - Video Mode</p>
             <h1 className="font-display mt-1 text-2xl leading-tight sm:text-3xl">关卡1开场故事 · 小麦的稻田</h1>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
             <button
               type="button"
               className="min-h-11 rounded-full border border-white/30 bg-white/12 px-4 text-sm text-white transition hover:bg-white/18"
-              onClick={() => setAutoplay((current) => !current)}
+              onClick={togglePlayPause}
             >
-              {autoplay ? "停止自动播放" : `自动播放 ${autoplayDurationSeconds} 秒`}
+              {isPlaying ? "⏸ 暂停" : "▶ 继续"}
             </button>
             <button
               type="button"
@@ -257,18 +256,19 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
             <p className="text-xs uppercase tracking-[0.24em] text-current/72">剧情进度</p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/12">
               <div
-                className={`h-full rounded-full ${tone.accent}`}
+                className={`h-full rounded-full ${tone.accent} transition-all duration-500`}
                 style={{ width: `${((activeIndex + 1) / panels.length) * 100}%` }}
               />
             </div>
             <p className="mt-3 text-sm leading-6 text-current/82">
-              手动点下一幕为主。你也可以开启自动播放，或直接跳过剧情进入教学。
+              自动播放中，共 {panels.length} 幕。可随时暂停或跳过。
             </p>
           </div>
 
-          <div className="mt-4 flex min-h-0 flex-1 flex-col gap-2">
+          <div className="mt-4 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             {panels.map((item, index) => {
               const isActive = index === activeIndex;
+              const isPast = index < activeIndex;
               return (
                 <button
                   key={item.id}
@@ -276,14 +276,20 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
                   className={`flex min-h-12 items-center gap-3 rounded-[22px] border px-3 py-3 text-left transition ${
                     isActive
                       ? "border-white/30 bg-white/14 text-white"
-                      : "border-white/10 bg-black/10 text-current/78 hover:bg-white/8"
+                      : isPast
+                        ? "border-white/10 bg-white/5 text-current/60"
+                        : "border-white/10 bg-black/10 text-current/78 hover:bg-white/8"
                   }`}
                   onClick={() => {
-                    setAutoplay(false);
                     setActiveIndex(index);
+                    setIsPlaying(false);
                   }}
                 >
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/16 bg-black/18 text-xs font-semibold">
+                  <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
+                    isActive ? "border-white/30 bg-white/20" :
+                    isPast ? "border-white/10 bg-white/10 text-current/60" :
+                    "border-white/16 bg-black/18"
+                  }`}>
                     {index + 1}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -296,22 +302,11 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
           </div>
 
           <div className="mt-4 rounded-[24px] border border-white/14 bg-black/12 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-current/70">本幕提示</p>
-            {panel.summarySteps ? (
-              <div className="mt-3 grid gap-2">
-                {panel.summarySteps.map((step, index) => (
-                  <div key={step} className="rounded-2xl border border-white/12 bg-white/8 px-3 py-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-current/58">Step {index + 1}</p>
-                    <p className="mt-1 text-sm font-semibold text-current">{step}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-3 rounded-2xl border border-white/12 bg-white/8 px-3 py-3 text-sm leading-7 text-current/86">
-                <p>{panel.aside}</p>
-                <p className="mt-2 text-current/72">主角老师：{playerLabel}</p>
-              </div>
-            )}
+            <p className="text-xs uppercase tracking-[0.24em] text-current/70">当前内容</p>
+            <div className="mt-3 rounded-2xl border border-white/12 bg-white/8 px-3 py-3 text-sm leading-7 text-current/86">
+              <p>{panel.aside}</p>
+              <p className="mt-2 text-current/72">主角老师：{playerLabel}</p>
+            </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -321,14 +316,14 @@ export default function FarmPrologue({ playerName, onBack, onSeen, onStartGame }
               onClick={handlePrevious}
               disabled={activeIndex === 0}
             >
-              上一幕
+              ⏮ 上一幕
             </button>
             <button
               type="button"
               className="min-h-11 flex-1 rounded-full bg-[linear-gradient(135deg,#ffe189_0%,#ffb341_100%)] px-5 text-sm font-semibold text-[#392309] shadow-[0_14px_28px_rgba(255,187,84,0.28)] transition hover:brightness-[1.03]"
               onClick={handleNext}
             >
-              {activeIndex === panels.length - 1 ? "开始教小麦！" : "下一幕"}
+              {activeIndex === panels.length - 1 ? "开始教小麦！" : "下一幕 →"}
             </button>
             <button
               type="button"

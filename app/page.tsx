@@ -401,7 +401,7 @@ export default function Home() {
             style={style}
             message={homeGuideMessage}
             theme="farm"
-            className="pointer-events-auto absolute left-4 bottom-4 w-[min(92vw,420px)]"
+            className="pointer-events-auto absolute left-4 top-4 w-[min(92vw,580px)]"
           />
 
           <button
