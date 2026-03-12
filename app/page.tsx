@@ -349,153 +349,155 @@ export default function Home() {
       )}
 
       {scene === "intro" && (
-        <>
-          <div className="pointer-events-auto absolute right-4 top-4 w-[min(88vw,340px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.46)] p-4 text-[#f7efe2] backdrop-blur-md">
-            <p className="text-xs font-semibold text-[#dcc9ab]">创建你的 AI 小助手</p>
-            <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
-              <span className="rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,240,214,0.12)] px-2 py-0.5 text-[#e3d2b8]">
-                1. 填名字
-              </span>
-              <span className="rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,240,214,0.12)] px-2 py-0.5 text-[#e3d2b8]">
-                2. 选风格
-              </span>
-              <span className="rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,240,214,0.12)] px-2 py-0.5 text-[#e3d2b8]">
-                3. 进游戏
-              </span>
+        <div className="pointer-events-none absolute inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+          <div className="pointer-events-auto mx-auto flex min-h-full max-w-5xl flex-col justify-between gap-4 md:min-h-0">
+            <div className="self-end w-full max-w-[340px] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.46)] p-4 text-[#f7efe2] backdrop-blur-md">
+              <p className="text-xs font-semibold text-[#dcc9ab]">创建你的 AI 小助手</p>
+              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                <span className="rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,240,214,0.12)] px-2 py-0.5 text-[#e3d2b8]">1. 填名字</span>
+                <span className="rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,240,214,0.12)] px-2 py-0.5 text-[#e3d2b8]">2. 选风格</span>
+                <span className="rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(255,240,214,0.12)] px-2 py-0.5 text-[#e3d2b8]">3. 进游戏</span>
+              </div>
+
+              <label className="mt-3 block text-xs text-[#dcc9ab]">
+                小助手昵称
+                <input
+                  className="mt-1.5 h-11 w-full rounded-xl border border-[rgba(255,255,255,0.16)] bg-[rgba(246,239,228,0.95)] px-3 text-sm text-[#3b2d1d]"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  maxLength={12}
+                  placeholder="例如：小麦、阿谷、云朵"
+                />
+              </label>
+
+              <p className="mt-3 text-xs text-[#dcc9ab]">角色风格</p>
+              <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+                {STYLE_OPTIONS.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={`rounded-xl border px-2 py-2 text-xs transition ${
+                      style === item
+                        ? "border-[rgba(255,255,255,0.16)] bg-[#f6ebd7] text-[#4a3422]"
+                        : "border-[rgba(255,255,255,0.14)] bg-[rgba(25,22,18,0.5)] text-[#ebdeca]"
+                    }`}
+                    onClick={() => setStyle(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-[#ccb99d]">{STYLE_HINTS[style]}</p>
+              <p className="mt-1 text-[11px] text-[#bda88a]">提示：三个风格只影响称号，不影响难度。</p>
             </div>
 
-            <label className="mt-3 block text-xs text-[#dcc9ab]">
-              小助手昵称
-              <input
-                className="mt-1.5 h-11 w-full rounded-xl border border-[rgba(255,255,255,0.16)] bg-[rgba(246,239,228,0.95)] px-3 text-sm text-[#3b2d1d]"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                maxLength={12}
-                placeholder="例如：小麦、阿谷、云朵"
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <AssistantNarrator
+                name={trimmedName || "小麦"}
+                style={style}
+                message={homeGuideMessage}
+                theme="farm"
+                className="w-full md:w-[min(50vw,420px)]"
               />
-            </label>
 
-            <p className="mt-3 text-xs text-[#dcc9ab]">角色风格</p>
-            <div className="mt-1.5 grid grid-cols-3 gap-1.5">
-              {STYLE_OPTIONS.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className={`rounded-xl border px-2 py-2 text-xs transition ${
-                    style === item
-                      ? "border-[rgba(255,255,255,0.16)] bg-[#f6ebd7] text-[#4a3422]"
-                      : "border-[rgba(255,255,255,0.14)] bg-[rgba(25,22,18,0.5)] text-[#ebdeca]"
-                  }`}
-                  onClick={() => setStyle(item)}
-                >
-                  {item}
-                </button>
-              ))}
+              <button
+                type="button"
+                className="h-12 w-full rounded-2xl bg-[linear-gradient(135deg,#e2b56c_0%,#bb7f2f_100%)] px-6 text-sm font-semibold text-[#2f1f0f] shadow-[0_14px_26px_rgba(99,68,32,0.46)] disabled:cursor-not-allowed disabled:bg-[#a69882] disabled:text-[#564638] md:w-auto"
+                disabled={!trimmedName}
+                onClick={() => setScene("select")}
+              >
+                进入游戏
+              </button>
             </div>
-            <p className="mt-2 text-[11px] text-[#ccb99d]">{STYLE_HINTS[style]}</p>
-            <p className="mt-1 text-[11px] text-[#bda88a]">提示：三个风格只影响称号，不影响难度。</p>
           </div>
-
-          <AssistantNarrator
-            name={trimmedName || "小麦"}
-            style={style}
-            message={homeGuideMessage}
-            theme="farm"
-            className="pointer-events-auto absolute left-4 bottom-4 w-[min(92vw,420px)]"
-          />
-
-          <button
-            type="button"
-            className="pointer-events-auto absolute bottom-4 right-4 h-12 rounded-2xl bg-[linear-gradient(135deg,#e2b56c_0%,#bb7f2f_100%)] px-6 text-sm font-semibold text-[#2f1f0f] shadow-[0_14px_26px_rgba(99,68,32,0.46)] disabled:cursor-not-allowed disabled:bg-[#a69882] disabled:text-[#564638]"
-            disabled={!trimmedName}
-            onClick={() => setScene("select")}
-          >
-            进入游戏
-          </button>
-        </>
+        </div>
       )}
 
       {scene === "select" && (
-        <>
-          <div className="pointer-events-auto absolute right-4 top-4 w-[min(88vw,320px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.46)] p-4 text-[#f7efe2] backdrop-blur-md">
-            <p className="text-xs text-[#d6c2a1]">当前小队</p>
-            <p className="mt-1 text-sm font-semibold text-[#faf2e6]">{name}（{style}）</p>
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-[11px] text-[#d4c0a0]">
-                <span>冒险进度</span>
-                <span>{completedCount} / 2</span>
+        <div className="pointer-events-none absolute inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+          <div className="pointer-events-auto mx-auto flex min-h-full max-w-5xl flex-col gap-4 md:min-h-0">
+            <div className="self-end w-full max-w-[320px] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.46)] p-4 text-[#f7efe2] backdrop-blur-md">
+              <p className="text-xs text-[#d6c2a1]">当前小队</p>
+              <p className="mt-1 text-sm font-semibold text-[#faf2e6]">{name}（{style}）</p>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[11px] text-[#d4c0a0]">
+                  <span>冒险进度</span>
+                  <span>{completedCount} / 2</span>
+                </div>
+                <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-[rgba(255,245,228,0.18)]">
+                  <div
+                    className="h-full rounded-full bg-[linear-gradient(90deg,#d7ab63_0%,#9d8eb4_100%)]"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
               </div>
-              <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-[rgba(255,245,228,0.18)]">
-                <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#d7ab63_0%,#9d8eb4_100%)]"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              className="mt-3 w-full rounded-xl border border-[rgba(255,255,255,0.16)] bg-[rgba(246,238,227,0.94)] px-3 py-2 text-xs font-semibold text-[#4a3721]"
-              onClick={() => setScene("intro")}
-            >
-              返回角色设置
-            </button>
-          </div>
-
-          <div className="pointer-events-auto absolute bottom-4 left-4 w-[min(46vw,360px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
-            <p className="text-xs text-[#e0cda8]">基础任务</p>
-            <p className="mt-1 font-display text-2xl">关卡1：保护稻田</p>
-            <p className="mt-1 text-xs text-[#e9dcc3]">
-              {hasSeenFarmPrologue
-                ? "已看过序幕，可直接进入，也可以重看"
-                : completedFarm
-                  ? "已完成，可再次挑战"
-                  : "先看小麦的序幕，再开始教小麦"}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
-                className="min-h-11 flex-1 rounded-xl bg-[rgba(255,243,218,0.96)] px-4 py-2 text-sm font-semibold text-[#4a3422]"
-                onClick={() => handleEnterFarm({ origin: "select" })}
+                className="mt-3 w-full rounded-xl border border-[rgba(255,255,255,0.16)] bg-[rgba(246,238,227,0.94)] px-3 py-2 text-xs font-semibold text-[#4a3721]"
+                onClick={() => setScene("intro")}
               >
-                {hasSeenFarmPrologue ? "直接进入" : "观看序幕"}
+                返回角色设置
               </button>
-              {hasSeenFarmPrologue ? (
-                <button
-                  type="button"
-                  className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
-                  onClick={() => handleEnterFarm({ origin: "select", forcePrologue: true })}
-                >
-                  重看序幕
-                </button>
-              ) : null}
-              {hasSeenFarmKnowledge ? (
-                <button
-                  type="button"
-                  className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(246,237,214,0.16)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
-                  onClick={() => handleEnterFarmKnowledge("select")}
-                >
-                  重看知识彩蛋
-                </button>
-              ) : null}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 md:items-end">
+              <div className="rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
+                <p className="text-xs text-[#e0cda8]">基础任务</p>
+                <p className="mt-1 font-display text-2xl">关卡1：保护稻田</p>
+                <p className="mt-1 text-xs text-[#e9dcc3]">
+                  {hasSeenFarmPrologue
+                    ? "已看过序幕，可直接进入，也可以重看"
+                    : completedFarm
+                      ? "已完成，可再次挑战"
+                      : "先看小麦的序幕，再开始教小麦"}
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <button
+                    type="button"
+                    className="min-h-11 flex-1 rounded-xl bg-[rgba(255,243,218,0.96)] px-4 py-2 text-sm font-semibold text-[#4a3422]"
+                    onClick={() => handleEnterFarm({ origin: "select" })}
+                  >
+                    {hasSeenFarmPrologue ? "直接进入" : "观看序幕"}
+                  </button>
+                  {hasSeenFarmPrologue ? (
+                    <button
+                      type="button"
+                      className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
+                      onClick={() => handleEnterFarm({ origin: "select", forcePrologue: true })}
+                    >
+                      重看序幕
+                    </button>
+                  ) : null}
+                  {hasSeenFarmKnowledge ? (
+                    <button
+                      type="button"
+                      className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(246,237,214,0.16)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
+                      onClick={() => handleEnterFarmKnowledge("select")}
+                    >
+                      重看知识彩蛋
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(20,23,31,0.52)] p-4 text-left text-[#f0f3f8] backdrop-blur-md shadow-[0_14px_24px_rgba(23,28,38,0.42)]"
+                onClick={() => setScene("brief-wenshuge")}
+              >
+                <p className="text-xs text-[#c5ccd9]">进阶任务</p>
+                <p className="mt-1 font-display text-2xl">关卡2：守护文枢阁</p>
+                <p className="mt-1 text-xs text-[#dde3ee]">{completedWenshuge ? "已完成，可再次挑战" : "挑战更高难度的异常识别"}</p>
+              </button>
+            </div>
+
+            <div className="flex justify-center pb-2 md:pt-2">
+              <p className="rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.42)] px-4 py-1.5 text-xs text-[#e0d1b9] backdrop-blur">
+                选择一个任务开始冒险
+              </p>
             </div>
           </div>
-
-          <button
-            type="button"
-            className="pointer-events-auto absolute bottom-4 right-4 w-[min(46vw,360px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(20,23,31,0.52)] p-4 text-left text-[#f0f3f8] backdrop-blur-md shadow-[0_14px_24px_rgba(23,28,38,0.42)]"
-            onClick={() => setScene("brief-wenshuge")}
-          >
-            <p className="text-xs text-[#c5ccd9]">进阶任务</p>
-            <p className="mt-1 font-display text-2xl">关卡2：守护文枢阁</p>
-            <p className="mt-1 text-xs text-[#dde3ee]">{completedWenshuge ? "已完成，可再次挑战" : "挑战更高难度的异常识别"}</p>
-          </button>
-
-          <div className="pointer-events-none absolute inset-x-0 bottom-24 flex justify-center px-4">
-            <p className="rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.42)] px-4 py-1.5 text-xs text-[#e0d1b9] backdrop-blur">
-              选择一个角落任务开始冒险
-            </p>
-          </div>
-        </>
+        </div>
       )}
     </div>
   );

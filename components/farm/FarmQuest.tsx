@@ -384,7 +384,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
   function renderWorkbenchStage(title: string, children: ReactNode, contentClassName = "min-h-0 flex-1 overflow-auto p-3 sm:p-4") {
     return (
-      <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
+      <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[126px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
         <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
           <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
             <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
@@ -449,7 +449,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(168,142,91,0.2),rgba(7,11,9,0.74)_76%)]" />
 
       <div className="pointer-events-none absolute inset-0 z-20">
-        <div className="pointer-events-auto absolute left-3 top-3 w-[min(86vw,340px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] px-3 py-2 text-[#eaf0ff] backdrop-blur-md">
+        <div className="pointer-events-auto absolute left-3 top-3 w-[min(72vw,340px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] px-3 py-2 text-[#eaf0ff] backdrop-blur-md sm:w-[min(86vw,340px)]">
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#9fb4e3]">Farm Quest</p>
           <p className="font-display mt-1 text-base">主题关卡1：保护我们的稻田</p>
           <p className="mt-1 text-[11px] text-[#a8b8dc]">
@@ -476,10 +476,10 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {!isCenterWorkbenchStep &&
           renderAssistantBubble(
-            "pointer-events-auto absolute left-3 right-3 top-[194px] w-auto sm:right-[292px] sm:top-[166px] md:right-auto md:w-[min(50vw,500px)]",
+            "pointer-events-auto absolute left-3 right-3 top-[166px] w-auto sm:right-[292px] sm:top-[166px] md:right-auto md:w-[min(50vw,500px)]",
           )}
 
-        <div className="pointer-events-auto absolute right-3 top-3 w-[min(64vw,220px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] p-2 text-[#e7eeff] backdrop-blur-md sm:w-[min(70vw,240px)]">
+        <div className="pointer-events-auto absolute right-3 top-3 w-[min(46vw,220px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] p-2 text-[#e7eeff] backdrop-blur-md sm:w-[min(70vw,240px)]">
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"

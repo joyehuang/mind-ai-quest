@@ -341,8 +341,8 @@ export default function WenshugeQuest({
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(60,128,162,0.24),rgba(7,18,28,0.86)_68%)]" />
 
-      <header className="absolute inset-x-4 top-4 z-20 flex items-start justify-between gap-3">
-        <div className="pointer-events-auto max-w-[620px] rounded-full bg-[rgba(8,24,38,0.66)] px-5 py-3 text-[#dff4ff] backdrop-blur-md">
+      <header className="absolute inset-x-3 top-3 z-20 flex flex-col gap-3 sm:inset-x-4 sm:top-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="pointer-events-auto max-w-[620px] rounded-[26px] bg-[rgba(8,24,38,0.66)] px-4 py-3 text-[#dff4ff] backdrop-blur-md sm:rounded-full sm:px-5">
           <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8da]">Wenshuge Quest</p>
           <p className="font-display mt-1 text-lg">主题关卡2：文枢阁非监督学习小游戏（V1）</p>
           <p className="mt-1 text-xs text-[#8fb7c9]">
@@ -350,7 +350,7 @@ export default function WenshugeQuest({
           </p>
         </div>
 
-        <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+        <div className="pointer-events-auto flex flex-wrap items-center gap-2 self-end sm:self-auto">
           <button
             type="button"
             className="rounded-full bg-[rgba(12,34,50,0.72)] px-3 py-1.5 text-xs text-[#c7e2ef] backdrop-blur"
@@ -375,7 +375,7 @@ export default function WenshugeQuest({
         </div>
       </header>
 
-      <div className="absolute left-4 top-24 z-20 max-w-[360px] space-y-2 text-[#d5edf8]">
+      <div className="absolute left-3 right-3 top-32 z-20 max-w-[360px] space-y-2 text-[#d5edf8] sm:left-4 sm:right-auto sm:top-24">
         <p className="text-sm">
           伙伴：{playerName}（{playerStyle}）
         </p>
@@ -394,10 +394,10 @@ export default function WenshugeQuest({
         style={playerStyle}
         message={assistantLesson}
         theme="wenshuge"
-        className="absolute left-4 top-[178px] z-20 w-[min(88vw,360px)]"
+        className="absolute left-3 right-3 top-[218px] z-20 w-auto sm:left-4 sm:right-auto sm:top-[178px] sm:w-[min(88vw,360px)]"
       />
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-4 sm:p-6">
+      <div className="absolute bottom-0 left-0 right-0 z-20 p-3 sm:p-6">
         <div className="mx-auto max-w-6xl rounded-[28px] bg-[rgba(7,24,36,0.74)] p-4 text-[#e6f5ff] backdrop-blur-xl">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {STEPS.map((item, index) => (
@@ -423,7 +423,7 @@ export default function WenshugeQuest({
             </div>
           </div>
 
-          <div className="max-h-[42vh] overflow-y-auto pr-1">
+          <div className="max-h-[46vh] overflow-y-auto pr-1 sm:max-h-[42vh]">
             {step === 0 && (
               <div className="space-y-3 text-sm">
                 <p>
