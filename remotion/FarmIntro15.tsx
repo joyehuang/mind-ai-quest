@@ -138,6 +138,7 @@ const Scene1Harvest = () => {
 // 场景2: 害虫入侵
 const Scene2Intrusion = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const localFrame = frame - TIMING.scene2.start;
 
   const bgOpacity = interpolate(localFrame, [0, 10], [0, 1], { extrapolateRight: "clamp" });
@@ -237,6 +238,7 @@ const Scene2Intrusion = () => {
 // 场景3: 小麦求助
 const Scene3Help = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const localFrame = frame - TIMING.scene3.start;
 
   const fadeIn = interpolate(localFrame, [0, 15], [0, 1], { extrapolateRight: "clamp" });
@@ -320,6 +322,7 @@ const Scene3Help = () => {
 // 场景4: 玩家登场
 const Scene4Hero = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const localFrame = frame - TIMING.scene4.start;
 
   const lightRadius = interpolate(localFrame, [0, 40], [0, 150], { extrapolateRight: "clamp" });
@@ -408,6 +411,7 @@ const Scene4Hero = () => {
 // 场景5: 玩法演示
 const Scene5Gameplay = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const localFrame = frame - TIMING.scene5.start;
 
   const steps = [
@@ -509,6 +513,7 @@ const Scene5Gameplay = () => {
 // 场景6: 出发号召 (CTA)
 const Scene6CTA = () => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const localFrame = frame - TIMING.scene6.start;
 
   const fadeIn = interpolate(localFrame, [0, 20], [0, 1], { extrapolateRight: "clamp" });

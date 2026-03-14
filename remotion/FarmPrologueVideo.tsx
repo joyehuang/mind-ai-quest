@@ -1,3 +1,4 @@
+import React from "react";
 import {
   AbsoluteFill,
   Img,
@@ -129,7 +130,7 @@ const TONES = {
 };
 
 // 文字动画组件
-const AnimatedText = ({ children, delay = 0 }: { children: string; delay?: number }) => {
+const AnimatedText = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
