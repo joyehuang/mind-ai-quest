@@ -362,8 +362,8 @@ export default function Home() {
                   <input
                     autoFocus
                     className="h-13 min-w-0 flex-1 bg-transparent px-4 text-base text-[#3f260e] outline-none placeholder:text-[#b18659]"
-                    value={teacherBaseName}
-                    onChange={(event) => setName(normalizeTeacherBase(event.target.value))}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
                     maxLength={12}
                     placeholder="例如：小麦、阿谷、云朵"
                     onKeyDown={(event) => {
