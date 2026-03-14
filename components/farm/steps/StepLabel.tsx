@@ -54,6 +54,8 @@ function LocalSampleImage({
   priority?: boolean;
 }) {
   const candidates = useMemo(() => sampleImageCandidates(sampleId), [sampleId]);
+  const [candidateIndex, setCandidateIndex] = useState(0);
+
   const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? `${CLOUD_BASE_URL}/image1.png`;
 
   return (

@@ -319,7 +319,7 @@ const Scene = ({ scene, playerName }: { scene: typeof SCENES[0]; playerName: str
                     border: `1px solid ${tone.text}33`,
                   }}
                 >
-                  "{scene.bubble}"
+                  &ldquo;{scene.bubble}&rdquo;
                 </div>
               )}
             </div>

@@ -4,6 +4,8 @@
   --background: #edf6ff;
   --foreground: #1d3558;
   --focus: #2f73e8;
+  --font-body: "Avenir Next", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-display: "Trebuchet MS", "Avenir Next", "YouYuan", "STKaiti", "KaiTi", serif;
 }
 
 @theme inline {
@@ -15,13 +17,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-body);
   background-image: radial-gradient(circle at 8% 10%, #fff8d8 0%, #ebf4ff 44%, #d6e9ff 100%);
   min-height: 100vh;
 }
 
 .font-display {
-  font-family: var(--font-display), "YouYuan", "STKaiti", "KaiTi", serif;
+  font-family: var(--font-display);
   letter-spacing: 0.015em;
 }
 
