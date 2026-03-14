@@ -1,21 +1,6 @@
 import type { Metadata } from "next";
-import { Baloo_2, Nunito } from "next/font/google";
-import "./globals.css";
-
 import Script from "next/script";
-
-
-const bodyFont = Nunito({
-  variable: "--font-body",
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-});
-
-const displayFont = Baloo_2({
-  variable: "--font-display",
-  weight: ["500", "700"],
-  subsets: ["latin"],
-});
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AI小当家",
@@ -38,7 +23,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className={`${bodyFont.variable} ${displayFont.variable} antialiased`}>
+      <body className="antialiased">
         {children}
       </body>
     </html>
