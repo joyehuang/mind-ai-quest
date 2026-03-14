@@ -1,14 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo } from "react";
 
 type NarratorTheme = "farm" | "wenshuge";
+type Position = "left" | "bottom";
 
 interface AssistantNarratorProps {
   name: string;
   style: string;
   message: string;
   theme?: NarratorTheme;
+  position?: Position;
   className?: string;
 }
 
@@ -35,73 +38,61 @@ export default function AssistantNarrator({
   style,
   message,
   theme = "farm",
+  position = "left",
   className,
 }: AssistantNarratorProps) {
   const seed = useMemo(() => hashText(`${name}-${style}`), [name, style]);
 
-  const skinColor = pickBySeed(["#f7d7be", "#efc9ab", "#e8bc98", "#dbad87"], seed, 2);
-  const hairColor = pickBySeed(["#2f2a27", "#4a372d", "#5a4633", "#253348"], seed, 5);
-  const coatColor = pickBySeed(["#5f83c2", "#7e6eb0", "#44778d", "#7b8c56"], seed, 8);
   const accentColor = theme === "farm" ? "#ffd700" : "#78b6d8";
   const bubbleBorder = theme === "farm" ? "border-[#ffd700]" : "border-[#7ba6cf]";
   const bubbleBg = theme === "farm" ? "bg-[rgba(255,255,240,0.98)]" : "bg-[rgba(233,245,255,0.9)]";
   const bubbleText = theme === "farm" ? "text-[#4a3728]" : "text-[#2a4c78]";
   const bubbleTitle = theme === "farm" ? "text-[#8b6914]" : "text-[#39608f]";
-  const tailColor = theme === "farm" ? "bg-[rgba(255,255,240,0.98)]" : "bg-[rgba(233,245,255,0.9)]";
   const badgeBg = theme === "farm" ? "bg-[#fff4d6]" : "bg-[#c7def7]";
   const badgeText = theme === "farm" ? "text-[#7a5a1f]" : "text-[#27486f]";
 
+  // Desktop: horizontal layout (avatar left, bubble right)
+  // Mobile bottom: vertical layout (bubble top, avatar bottom, centered)
+  const isBottom = position === "bottom";
+
   return (
-    <div className={`flex items-end gap-3 ${className ?? ""}`}>
-      <div className="relative h-[140px] w-[140px] shrink-0 origin-bottom-left scale-[1.3]">
+    <div
+      className={`flex ${isBottom ? "flex-col-reverse items-center gap-2" : "flex-row items-end gap-3"} ${className ?? ""}`}
+    >
+      {/* Avatar */}
+      <div className={`relative shrink-0 ${isBottom ? "h-16 w-16" : "h-[100px] w-[100px] sm:h-[140px] sm:w-[140px]"}`}>
         <div
-          className="absolute inset-0 rounded-full border border-[rgba(255,255,255,0.28)] shadow-[0_8px_20px_rgba(8,12,24,0.35)]"
+          className="absolute inset-0 rounded-full border border-[rgba(255,255,255,0.28)] shadow-[0_8px_20px_rgba(8,12,24,0.35)] overflow-hidden"
           style={{
-            background: `linear-gradient(160deg, ${coatColor}, ${accentColor})`,
+            background: `linear-gradient(160deg, ${accentColor}, ${accentColor}40)`,
           }}
-        />
-
-        <div
-          className="absolute left-1/2 top-[20px] h-[42px] w-[42px] -translate-x-1/2 rounded-full"
-          style={{ backgroundColor: skinColor }}
-        />
-        <div
-          className="absolute left-1/2 top-[12px] h-[22px] w-[46px] -translate-x-1/2 rounded-[50%]"
-          style={{ backgroundColor: hairColor }}
-        />
-
-        <span className="absolute left-[30px] top-[38px] h-[5px] w-[5px] rounded-full bg-[#2d3138]" />
-        <span className="absolute left-[54px] top-[38px] h-[5px] w-[5px] rounded-full bg-[#2d3138]" />
-        <span className="absolute left-1/2 top-[49px] h-[2px] w-[12px] -translate-x-1/2 rounded-full bg-[#925f4b]" />
-
-        {style === "工程师" && (
-          <>
-            <span className="absolute left-[18px] top-[27px] h-[12px] w-[14px] rounded-full border border-[rgba(34,48,71,0.75)]" />
-            <span className="absolute left-[37px] top-[27px] h-[12px] w-[14px] rounded-full border border-[rgba(34,48,71,0.75)]" />
-            <span className="absolute left-[33px] top-[32px] h-[1.5px] w-[4px] bg-[rgba(34,48,71,0.75)]" />
-          </>
-        )}
-
-        {style === "探险家" && (
-          <span className="absolute left-1/2 top-[7px] h-[5px] w-[42px] -translate-x-1/2 rounded-full bg-[rgba(64,47,30,0.7)]" />
-        )}
-
-        {style === "侦查员" && (
-          <span className="absolute right-[8px] top-[34px] h-[8px] w-[8px] rounded-full border border-[rgba(46,62,94,0.8)] bg-[rgba(187,209,241,0.8)]" />
-        )}
+        >
+          <Image
+            src="https://bear-public.tos-cn-shanghai.volces.com/avatar.webp"
+            alt="AI Assistant"
+            fill
+            className="object-cover"
+            sizes={isBottom ? "64px" : "(max-width: 640px) 100px, 140px"}
+          />
+        </div>
       </div>
 
-      <div className="relative max-w-[580px]">
-        <div className={`absolute -left-1.5 bottom-8 h-3 w-3 rotate-45 border-l border-b ${bubbleBorder} ${tailColor}`} />
-        <article className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-5 shadow-[0_10px_24px_rgba(10,16,28,0.2)]`}>
-          <p className={`text-[11px] uppercase tracking-[0.18em] ${bubbleTitle}`}>AI Narrator</p>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <p className={`text-base font-semibold ${bubbleText}`}>{name}</p>
-            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${badgeBg} ${badgeText}`}>
+      {/* Bubble */}
+      <div className={`relative ${isBottom ? "w-full max-w-[calc(100vw-2rem)]" : "max-w-[min(60vw,580px)]"}`}>
+        <div
+          className={`absolute ${isBottom ? "-bottom-1.5 left-1/2 -translate-x-1/2 rotate-[135deg]" : "-left-1.5 bottom-8 rotate-45"} h-3 w-3 border-l border-b ${bubbleBorder} ${bubbleBg}`}
+        />
+        <article
+          className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-3 sm:p-5 shadow-[0_10px_24px_rgba(10,16,28,0.2)] ${isBottom ? "text-center" : ""}`}
+        >
+          <p className={`text-[10px] sm:text-[11px] uppercase tracking-[0.18em] ${bubbleTitle}`}>AI Narrator</p>
+          <div className={`mt-1 flex flex-wrap items-center gap-2 ${isBottom ? "justify-center" : ""}`}>
+            <p className={`text-sm sm:text-base font-semibold ${bubbleText}`}>{name}</p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold ${badgeBg} ${badgeText}`}>
               {roleLabel(style)}
             </span>
           </div>
-          <p className={`mt-2 text-base leading-7 ${bubbleText}`}>{message}</p>
+          <p className={`mt-2 text-sm sm:text-base leading-6 sm:leading-7 ${bubbleText}`}>{message}</p>
         </article>
       </div>
     </div>

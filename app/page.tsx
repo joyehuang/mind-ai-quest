@@ -241,7 +241,7 @@ export default function Home() {
               className="rounded-xl border border-[#9eb2d2] bg-[rgba(255,255,255,0.82)] px-4 py-2 text-sm text-[#36527f]"
               onClick={() => setScene("select")}
             >
-              返回关卡选择
+              返回首页
             </button>
             <button
               type="button"
@@ -261,7 +261,7 @@ export default function Home() {
       <FarmKnowledgeReveal
         playerName={teacherName}
         certificate={readFarmCertificate()}
-        returnLabel={farmEntryOrigin === "landing" ? "返回首页" : "返回游戏主页"}
+        returnLabel="返回首页"
         onSeen={markFarmKnowledgeSeen}
         onBack={() => setScene(farmEntryOrigin)}
       />
@@ -445,6 +445,12 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  // 关卡选择功能已关闭，直接跳转到关卡1
+  if (scene === "select") {
+    setScene("farm");
+    return null;
   }
 
   return (

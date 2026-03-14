@@ -389,13 +389,15 @@ export default function WenshugeQuest({
         )}
       </div>
 
-      <AssistantNarrator
-        name={playerName}
-        style={playerStyle}
-        message={assistantLesson}
-        theme="wenshuge"
-        className="absolute left-4 top-[178px] z-20 w-[min(88vw,360px)]"
-      />
+      <div className="pointer-events-auto fixed bottom-[calc(42vh+1rem)] left-3 right-3 z-30 sm:absolute sm:bottom-auto sm:left-4 sm:top-[178px] sm:z-20 sm:w-[min(88vw,360px)]">
+        <AssistantNarrator
+          name={playerName}
+          style={playerStyle}
+          message={assistantLesson}
+          theme="wenshuge"
+          className="w-full"
+        />
+      </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-20 p-4 sm:p-6">
         <div className="mx-auto max-w-6xl rounded-[28px] bg-[rgba(7,24,36,0.74)] p-4 text-[#e6f5ff] backdrop-blur-xl">
@@ -768,7 +770,7 @@ export default function WenshugeQuest({
               className="rounded-full bg-[rgba(255,255,255,0.14)] px-4 py-2 text-xs text-[#cde3ee]"
               onClick={previousStep}
             >
-              {step === 0 ? "返回关卡选择" : "上一步"}
+              {step === 0 ? "返回首页" : "上一步"}
             </button>
             <button
               type="button"

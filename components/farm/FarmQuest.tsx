@@ -476,10 +476,11 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           )}
         </div>
 
-        {!isCenterWorkbenchStep &&
-          renderAssistantBubble(
-            "pointer-events-auto absolute left-3 right-3 top-[280px] w-auto sm:right-[292px] sm:top-[240px] md:right-auto md:w-[min(50vw,500px)] animate-[slideDown_0.5s_ease-out]",
-          )}
+        {!isCenterWorkbenchStep && (
+          <div className="pointer-events-auto fixed bottom-20 left-3 right-3 z-30 sm:absolute sm:bottom-auto sm:left-3 sm:right-[292px] sm:top-[240px] sm:z-auto md:right-auto animate-[slideUp_0.5s_ease-out]">
+            {renderAssistantBubble("w-full sm:w-[min(50vw,500px)]")}
+          </div>
+        )}
 
         {!isCenterWorkbenchStep && (
           <div className="pointer-events-auto absolute bottom-3 right-3 hidden scale-[2] origin-bottom-right w-[220px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl sm:block">
@@ -488,7 +489,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
               className="w-full rounded-full bg-[rgba(255,255,255,0.16)] px-4 py-2 text-[11px] text-[#d8e4ff]"
               onClick={previousStep}
             >
-              {step === 0 ? "返回关卡选择" : "上一步"}
+              {step === 0 ? "返回首页" : "上一步"}
             </button>
             <button
               type="button"
@@ -572,7 +573,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
               className="rounded-full bg-[rgba(255,255,255,0.16)] px-4 py-2 text-xs text-[#d8e4ff]"
               onClick={previousStep}
             >
-              {step === 0 ? "返回关卡选择" : "上一步"}
+              {step === 0 ? "返回首页" : "上一步"}
             </button>
             <button
               type="button"
