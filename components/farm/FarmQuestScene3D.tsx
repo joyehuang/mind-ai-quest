@@ -4,8 +4,8 @@ import { Clone, OrbitControls } from "@react-three/drei";
 import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box3, Mesh, Object3D, Vector3 } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Mesh } from "three";
+import { loadWheatModel, type WheatModel } from "@/lib/farm/wheat-model";
 import type { FarmSample, ModelJudgment, PredictionRecord, RiceLabel } from "@/lib/farm/types";
 
 interface FarmQuestScene3DProps {
@@ -57,13 +57,6 @@ interface PlantAppearance {
   damageSpotCount: number;
 }
 
-interface WheatModel {
-  object: Object3D;
-  minY: number;
-  height: number;
-}
-
-const WHEAT_MODEL_PATHS = ["/wheet.glb"];
 const FARM_BG_IMAGE_PATHS = [
   "/images_game-bg.png",
   "/image-game-bg.png",
@@ -276,61 +269,25 @@ function SelectionPulse({
   );
 }
 
-function useWheatModel(modelPaths: string[]) {
+function useWheatModel() {
   const [model, setModel] = useState<WheatModel | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let canceled = false;
-    const loader = new GLTFLoader();
-
-    const tryLoad = (index: number) => {
-      if (index >= modelPaths.length) {
-        if (!canceled) {
-          setLoaded(true);
-          setModel(null);
-        }
+    loadWheatModel().then((nextModel) => {
+      if (canceled) {
         return;
       }
 
-      loader.load(
-        modelPaths[index],
-        (gltf) => {
-          if (canceled) {
-            return;
-          }
-
-          const scene = gltf.scene ?? gltf.scenes?.[0];
-          if (!scene) {
-            tryLoad(index + 1);
-            return;
-          }
-
-          scene.updateWorldMatrix(true, true);
-          const bounds = new Box3().setFromObject(scene);
-          const size = new Vector3();
-          bounds.getSize(size);
-
-          setModel({
-            object: scene,
-            minY: bounds.min.y,
-            height: Math.max(size.y, 0.001),
-          });
-          setLoaded(true);
-        },
-        undefined,
-        () => {
-          tryLoad(index + 1);
-        },
-      );
-    };
-
-    tryLoad(0);
+      setModel(nextModel);
+      setLoaded(true);
+    });
 
     return () => {
       canceled = true;
     };
-  }, [modelPaths]);
+  }, []);
 
   return { model, loaded };
 }
@@ -529,7 +486,7 @@ export default function FarmQuestScene3D({
   const cameraFocusX = FIELD_LAYOUT[activeField].centerX * FIELD_RENDER_SCALE;
   const hoveredSample = hoveredSampleId ? sampleById[hoveredSampleId] ?? null : null;
   const enableDetailedModel = !liteMode;
-  const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel(WHEAT_MODEL_PATHS);
+  const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel();
   const [backgroundImageIndex, setBackgroundImageIndex] = useState(0);
   const backgroundImageSrc =
     FARM_BG_IMAGE_PATHS[Math.min(backgroundImageIndex, FARM_BG_IMAGE_PATHS.length - 1)] ?? FARM_BG_IMAGE_PATHS[0];

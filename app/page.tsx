@@ -3,21 +3,19 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import FarmKnowledgeReveal from "@/components/farm/FarmKnowledgeReveal";
-import FarmPrologue from "@/components/farm/FarmPrologue";
 import FarmQuest from "@/components/farm/FarmQuest";
 import WenshugeQuest from "@/components/wenshuge/WenshugeQuest";
-import { FARM_PROLOGUE_STORAGE_KEY } from "@/lib/farm/prologue";
 import {
   FARM_CERTIFICATE_STORAGE_KEY,
   FARM_KNOWLEDGE_STORAGE_KEY,
   type FarmCertificateSnapshot,
 } from "@/lib/farm/terminology";
+import { preloadWheatModel } from "@/lib/farm/wheat-model";
 
 type Scene =
   | "landing"
   | "video"
   | "select"
-  | "brief-farm"
   | "farm"
   | "farm-reveal"
   | "brief-wenshuge"
@@ -30,32 +28,8 @@ const STYLE_HINTS: Record<(typeof STYLE_OPTIONS)[number], string> = {
   工程师: "擅长给小麦试技能，让判断越来越稳",
   探险家: "擅长尝试新思路，突破旧规则",
 };
-const FARM_PROLOGUE_EVENT = "farm-prologue-state-change";
 const FARM_KNOWLEDGE_EVENT = "farm-knowledge-state-change";
 const LANDING_TO_VIDEO_DELAY_MS = 820;
-
-function readFarmPrologueSeen() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return window.localStorage.getItem(FARM_PROLOGUE_STORAGE_KEY) === "true";
-}
-
-function subscribeFarmPrologueSeen(callback: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
-  }
-
-  const handleChange = () => callback();
-  window.addEventListener("storage", handleChange);
-  window.addEventListener(FARM_PROLOGUE_EVENT, handleChange);
-
-  return () => {
-    window.removeEventListener("storage", handleChange);
-    window.removeEventListener(FARM_PROLOGUE_EVENT, handleChange);
-  };
-}
 
 function readFarmKnowledgeSeen() {
   if (typeof window === "undefined") {
@@ -118,7 +92,6 @@ export default function Home() {
   const [farmEntryOrigin, setFarmEntryOrigin] = useState<"landing" | "select">("landing");
   const onboardingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onboardingVideoRef = useRef<HTMLVideoElement | null>(null);
-  const hasSeenFarmPrologue = useSyncExternalStore(subscribeFarmPrologueSeen, readFarmPrologueSeen, () => false);
   const hasSeenFarmKnowledge = useSyncExternalStore(subscribeFarmKnowledgeSeen, readFarmKnowledgeSeen, () => false);
   const completedCount = Number(completedFarm) + Number(completedWenshuge);
   const progressPercent = (completedCount / 2) * 100;
@@ -134,6 +107,25 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const preloadFarmAssets = () => {
+      void import("@/components/farm/FarmQuestScene3D");
+      preloadWheatModel();
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(preloadFarmAssets, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preloadFarmAssets, 180);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
     if (scene !== "video") {
       return;
     }
@@ -146,17 +138,6 @@ export default function Home() {
     const playPromise = video.play();
     playPromise?.catch(() => {});
   }, [scene]);
-
-  function currentFarmPrologueSeenState() {
-    return readFarmPrologueSeen();
-  }
-
-  function markFarmPrologueSeen() {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(FARM_PROLOGUE_STORAGE_KEY, "true");
-      window.dispatchEvent(new Event(FARM_PROLOGUE_EVENT));
-    }
-  }
 
   function markFarmKnowledgeSeen() {
     if (typeof window !== "undefined") {
@@ -193,7 +174,8 @@ export default function Home() {
 
   function handleFinishOnboarding() {
     clearOnboardingTimeout();
-    setScene("select");
+    setFarmEntryOrigin("select");
+    setScene("farm");
   }
 
   function handleReturnToLanding() {
@@ -203,29 +185,14 @@ export default function Home() {
     setScene("landing");
   }
 
-  function handleEnterFarm(options?: { origin?: "landing" | "select"; forcePrologue?: boolean }) {
-    const origin = options?.origin ?? "select";
-    const shouldForcePrologue = options?.forcePrologue ?? false;
-    const seen = currentFarmPrologueSeenState();
-
+  function handleEnterFarm(origin: "landing" | "select" = "select") {
     setFarmEntryOrigin(origin);
-    setScene(!shouldForcePrologue && seen ? "farm" : "brief-farm");
+    setScene("farm");
   }
 
   function handleEnterFarmKnowledge(origin: "landing" | "select") {
     setFarmEntryOrigin(origin);
     setScene("farm-reveal");
-  }
-
-  if (scene === "brief-farm") {
-    return (
-      <FarmPrologue
-        playerName={trimmedName}
-        onBack={() => setScene(farmEntryOrigin)}
-        onSeen={markFarmPrologueSeen}
-        onStartGame={() => setScene("farm")}
-      />
-    );
   }
 
   if (scene === "brief-wenshuge") {
@@ -325,21 +292,18 @@ export default function Home() {
 
   if (scene === "video") {
     return (
-      <div className="relative h-screen w-screen overflow-hidden bg-[#05070d]">
+      <div className="relative h-screen w-screen overflow-hidden bg-black">
         <video
           ref={onboardingVideoRef}
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
-          muted
           playsInline
+          volume={1}
           preload="auto"
           onEnded={handleFinishOnboarding}
         >
           <source src="/onboard-video.mp4" type="video/mp4" />
         </video>
-
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_14%,rgba(255,224,149,0.18)_0%,rgba(8,11,18,0.08)_34%,rgba(5,7,13,0.56)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,13,0.05)_0%,rgba(4,7,13,0.34)_70%,rgba(4,7,13,0.72)_100%)]" />
 
         <button
           type="button"
@@ -360,76 +324,52 @@ export default function Home() {
 
   if (scene === "landing") {
     return (
-      <div className="relative h-screen w-screen overflow-hidden bg-[#f3ead9]">
+      <div className="relative h-screen w-screen overflow-hidden">
         <Image
           src="/bg-img-v2.webp"
-          alt=""
+          alt="AI小当家开场背景"
           fill
           priority
-          className="scale-110 object-cover opacity-40 blur-2xl"
+          className="object-cover"
           sizes="100vw"
         />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_16%,rgba(255,243,213,0.95)_0%,rgba(244,227,190,0.28)_28%,rgba(70,49,26,0.14)_58%,rgba(27,15,8,0.28)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,246,225,0.12)_0%,rgba(60,33,12,0.08)_44%,rgba(29,15,8,0.2)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,245,222,0.58)_0%,rgba(255,245,222,0)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(26,11,2,0)_0%,rgba(26,11,2,0.12)_30%,rgba(26,11,2,0.48)_100%)]" />
 
-        <div className="absolute inset-0 flex items-center justify-center px-4 py-5 sm:px-6">
-          <div className="relative aspect-[9/16] h-full max-h-[100svh] w-full max-w-[min(56.25svh,94vw)] overflow-hidden rounded-[34px] border border-white/35 shadow-[0_28px_90px_rgba(47,23,7,0.28)]">
+        <div className="absolute left-1/2 top-[24%] z-10 w-[58%] max-w-[272px] -translate-x-1/2">
+          <div
+            className={
+              isLogoExiting
+                ? "animate-[landing-logo-exit_0.82s_cubic-bezier(0.7,0,0.9,0.4)_both]"
+                : "animate-[landing-logo-drop_1.45s_cubic-bezier(0.22,0.95,0.28,1.08)_both]"
+            }
+          >
             <Image
-              src="/bg-img-v2.webp"
-              alt="AI小当家开场背景"
-              fill
+              src="/logo.png"
+              alt="AI小当家"
+              width={860}
+              height={360}
               priority
-              className="object-cover"
-              sizes="(max-width: 768px) 94vw, 56vh"
+              className="h-auto w-full drop-shadow-[0_22px_26px_rgba(86,46,15,0.3)]"
             />
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,246,225,0.12)_0%,rgba(60,33,12,0.08)_44%,rgba(29,15,8,0.2)_100%)]" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,245,222,0.58)_0%,rgba(255,245,222,0)_100%)]" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(26,11,2,0)_0%,rgba(26,11,2,0.12)_30%,rgba(26,11,2,0.48)_100%)]" />
-
-            <div className="absolute left-1/2 top-[30%] z-10 w-[72%] max-w-[340px] -translate-x-1/2">
-              <div
-                className={
-                  isLogoExiting
-                    ? "animate-[landing-logo-exit_0.82s_cubic-bezier(0.7,0,0.9,0.4)_both]"
-                    : "animate-[landing-logo-drop_1.45s_cubic-bezier(0.22,0.95,0.28,1.08)_both]"
-                }
-              >
-                <Image
-                  src="/logo.png"
-                  alt="AI小当家"
-                  width={860}
-                  height={360}
-                  priority
-                  className="h-auto w-full drop-shadow-[0_22px_26px_rgba(86,46,15,0.3)]"
-                />
-              </div>
-            </div>
-
-            <div
-              className={`absolute inset-x-6 top-[56%] z-10 flex flex-col items-center text-center transition-all duration-300 sm:inset-x-8 ${
-                isLogoExiting
-                  ? "translate-y-5 opacity-0"
-                  : "animate-[landing-cta-rise_0.9s_ease_0.48s_both]"
-              }`}
-            >
-              <p className="max-w-[18rem] text-[0.95rem] font-semibold leading-7 text-[#704319] sm:max-w-[22rem] sm:text-base">
-                和 AI 小当家一起进入今天的冒险任务，边玩边学会 AI 的聪明办法。
-              </p>
-              <button
-                type="button"
-                className="mt-5 min-h-14 min-w-[11.5rem] rounded-full border border-[#ffefc8] bg-[linear-gradient(135deg,#ffe39d_0%,#ffb94a_100%)] px-8 text-lg font-bold text-[#4d2809] shadow-[0_18px_36px_rgba(108,55,15,0.28)] transition hover:scale-[1.02] active:scale-[0.98]"
-                onClick={() => setIsNameModalOpen(true)}
-              >
-                开始游戏
-              </button>
-              <p className="mt-4 text-xs tracking-[0.18em] text-[#8d5c2a]">
-                先起个名字，再进入视频开场
-              </p>
-            </div>
-
-            <div className="pointer-events-none absolute inset-x-5 bottom-5 z-10 rounded-[24px] border border-white/20 bg-white/10 px-4 py-3 text-center text-xs leading-6 text-[#fff4de] backdrop-blur-sm">
-              每一次选择，都会让你的 AI 小当家更聪明一点。
-            </div>
           </div>
+        </div>
+
+        <div
+          className={`absolute inset-x-6 top-[56%] z-10 flex flex-col items-center text-center transition-all duration-300 sm:inset-x-8 ${
+            isLogoExiting
+              ? "translate-y-5 opacity-0"
+              : "animate-[landing-cta-rise_0.9s_ease_0.48s_both]"
+          }`}
+        >
+          <button
+            type="button"
+            className="mt-5 min-h-14 min-w-[11.5rem] rounded-full border border-[#ffefc8] bg-[linear-gradient(135deg,#ffe39d_0%,#ffb94a_100%)] px-8 text-lg font-bold text-[#4d2809] shadow-[0_18px_36px_rgba(108,55,15,0.28)] transition hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => setIsNameModalOpen(true)}
+          >
+            开始游戏
+          </button>
         </div>
 
         {isNameModalOpen ? (
@@ -557,29 +497,16 @@ export default function Home() {
         <p className="text-xs text-[#e0cda8]">基础任务</p>
         <p className="mt-1 font-display text-2xl">关卡1：保护稻田</p>
         <p className="mt-1 text-xs text-[#e9dcc3]">
-          {hasSeenFarmPrologue
-            ? "已看过序幕，可直接进入，也可以重看"
-            : completedFarm
-              ? "已完成，可再次挑战"
-              : "先看小麦的序幕，再开始教小麦"}
+          {completedFarm ? "已完成，可再次挑战" : "直接进入任务，帮助小麦一起保护稻田"}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
             className="min-h-11 flex-1 rounded-xl bg-[rgba(255,243,218,0.96)] px-4 py-2 text-sm font-semibold text-[#4a3422]"
-            onClick={() => handleEnterFarm({ origin: "select" })}
+            onClick={() => handleEnterFarm("select")}
           >
-            {hasSeenFarmPrologue ? "直接进入" : "观看序幕"}
+            {completedFarm ? "再次挑战" : "开始任务"}
           </button>
-          {hasSeenFarmPrologue ? (
-            <button
-              type="button"
-              className="min-h-11 rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-semibold text-[#f7ebd3]"
-              onClick={() => handleEnterFarm({ origin: "select", forcePrologue: true })}
-            >
-              重看序幕
-            </button>
-          ) : null}
           {hasSeenFarmKnowledge ? (
             <button
               type="button"
