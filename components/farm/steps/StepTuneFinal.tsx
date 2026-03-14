@@ -44,7 +44,7 @@ export default function StepTuneFinal({
       <div className="rounded-2xl border border-[#cfd8ec] bg-white p-4">
         <p className="text-sm font-semibold text-[#274066]">第五步：小麦参加毕业考试</p>
         <p className="mt-1 text-xs text-[#60729b]">
-          让小麦参加**考试田的毕业考试**！考试田的稻子是小麦从来没见过的，这是检验它真正学会没有的终极测试。你可以给小麦加一些技能来提高成绩哦！
+          让小麦参加考试田的毕业考试！考试田的稻子是小麦从来没见过的，这是检验它真正学会没有的终极测试。你可以给小麦加一些技能来提高成绩哦！
         </p>
         <p className="mt-1 text-xs text-[#60729b]">{FARM_METAPHOR_LABELS.textbookReadiness}：{toPercent(trainingSetQuality)}</p>
 
