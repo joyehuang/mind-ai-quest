@@ -1,11 +1,11 @@
 ﻿"use client";
 
-import { Clone, OrbitControls } from "@react-three/drei";
+import { Clone, Html, OrbitControls } from "@react-three/drei";
 import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mesh } from "three";
-import { loadWheatModel, type WheatModel } from "@/lib/farm/wheat-model";
+import { Box3, Mesh, Object3D, Vector3 } from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { FarmSample, ModelJudgment, PredictionRecord, RiceLabel } from "@/lib/farm/types";
 
 interface FarmQuestScene3DProps {
@@ -57,7 +57,16 @@ interface PlantAppearance {
   damageSpotCount: number;
 }
 
-const FARM_BG_IMAGE_SRC = "https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp";
+interface WheatModel {
+  object: Object3D;
+  minY: number;
+  height: number;
+}
+
+const WHEAT_MODEL_PATHS = ["https://bear-public.tos-cn-shanghai.volces.com/wheet.glb"];
+const FARM_BG_IMAGE_PATHS = [
+  "https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp",
+];
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
   A: {
@@ -65,8 +74,8 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
     width: 2.9,
     depth: 2.9,
     columns: 5,
-    spacingX: 0.56,
-    spacingZ: 0.62,
+    spacingX: 0.67,
+    spacingZ: 0.74,
     startZ: -1.05,
   },
   B: {
@@ -74,8 +83,8 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
     width: 2.3,
     depth: 2.4,
     columns: 4,
-    spacingX: 0.56,
-    spacingZ: 0.62,
+    spacingX: 0.67,
+    spacingZ: 0.74,
     startZ: -0.85,
   },
   C: {
@@ -83,14 +92,13 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
     width: 2.3,
     depth: 2.4,
     columns: 4,
-    spacingX: 0.56,
-    spacingZ: 0.62,
+    spacingX: 0.67,
+    spacingZ: 0.74,
     startZ: -0.85,
   },
 };
-const FIELD_RENDER_SCALE = 0.86;
-const PLANT_SCALE_FACTOR = 2;
-const SHOW_ADJACENT_FIELDS = false;
+const FIELD_RENDER_SCALE = 1.376;
+const PLANT_SCALE_FACTOR = 2.4;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -262,25 +270,61 @@ function SelectionPulse({
   );
 }
 
-function useWheatModel() {
+function useWheatModel(modelPaths: string[]) {
   const [model, setModel] = useState<WheatModel | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let canceled = false;
-    loadWheatModel().then((nextModel) => {
-      if (canceled) {
+    const loader = new GLTFLoader();
+
+    const tryLoad = (index: number) => {
+      if (index >= modelPaths.length) {
+        if (!canceled) {
+          setLoaded(true);
+          setModel(null);
+        }
         return;
       }
 
-      setModel(nextModel);
-      setLoaded(true);
-    });
+      loader.load(
+        modelPaths[index],
+        (gltf) => {
+          if (canceled) {
+            return;
+          }
+
+          const scene = gltf.scene ?? gltf.scenes?.[0];
+          if (!scene) {
+            tryLoad(index + 1);
+            return;
+          }
+
+          scene.updateWorldMatrix(true, true);
+          const bounds = new Box3().setFromObject(scene);
+          const size = new Vector3();
+          bounds.getSize(size);
+
+          setModel({
+            object: scene,
+            minY: bounds.min.y,
+            height: Math.max(size.y, 0.001),
+          });
+          setLoaded(true);
+        },
+        undefined,
+        () => {
+          tryLoad(index + 1);
+        },
+      );
+    };
+
+    tryLoad(0);
 
     return () => {
       canceled = true;
     };
-  }, []);
+  }, [modelPaths]);
 
   return { model, loaded };
 }
@@ -294,6 +338,7 @@ function RicePlant({
   liteMode,
   model,
   position,
+  hovered,
   onHover,
   onSelect,
 }: {
@@ -305,6 +350,7 @@ function RicePlant({
   liteMode: boolean;
   model: WheatModel | null;
   position: [number, number, number];
+  hovered: boolean;
   onHover: () => void;
   onSelect: () => void;
 }) {
@@ -432,6 +478,24 @@ function RicePlant({
           </mesh>
         </>
       )}
+
+      {hovered && (
+        <Html
+          position={[0, appearance.stemHeight + 0.15, 0]}
+          center
+          distanceFactor={50}
+          zIndexRange={[100, 0]}
+          style={{ pointerEvents: "none" }}
+        >
+          <div className="rounded border border-[#4c5e84] bg-[rgba(17,27,48,0.94)] px-1 py-0.5 text-[2px] text-[#d7e3ff] shadow-lg max-w-[80px] leading-[2px] whitespace-nowrap">
+            <p className="font-semibold">候选稻种 #{sample.id.slice(-3)}</p>
+            <p>叶子：{sample.profile.leaf}</p>
+            <p>稻杆：{sample.profile.stem}</p>
+            <p>虫害：{sample.profile.pest}</p>
+            <p>稻穗：{sample.profile.panicle}</p>
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
@@ -475,16 +539,18 @@ export default function FarmQuestScene3D({
     [fieldCPredictions],
   );
 
-  const logicalActiveField = stepIndex <= 1 ? "A" : stepIndex <= 3 ? "B" : "C";
-  const sceneActiveField = SHOW_ADJACENT_FIELDS ? logicalActiveField : "A";
-  const visibleFieldKeys = SHOW_ADJACENT_FIELDS ? (["A", "B", "C"] as const) : (["A"] as const);
-  const cameraFocusX = FIELD_LAYOUT[sceneActiveField].centerX * FIELD_RENDER_SCALE;
+  const activeField = stepIndex <= 1 ? "A" : stepIndex <= 3 ? "B" : "C";
+  const cameraFocusX = FIELD_LAYOUT[activeField].centerX * FIELD_RENDER_SCALE;
   const hoveredSample = hoveredSampleId ? sampleById[hoveredSampleId] ?? null : null;
   const enableDetailedModel = !liteMode;
-  const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel();
+  const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel(WHEAT_MODEL_PATHS);
+  const [backgroundImageIndex, setBackgroundImageIndex] = useState(0);
+  const backgroundImageSrc =
+    FARM_BG_IMAGE_PATHS[Math.min(backgroundImageIndex, FARM_BG_IMAGE_PATHS.length - 1)] ?? FARM_BG_IMAGE_PATHS[0];
+
   const showFieldAPlants = true;
-  const showFieldBPlants = SHOW_ADJACENT_FIELDS && stepIndex >= 2;
-  const showFieldCPlants = SHOW_ADJACENT_FIELDS && stepIndex >= 4;
+  const showFieldBPlants = stepIndex >= 2;
+  const showFieldCPlants = stepIndex >= 4;
 
   function renderPlantMeshes(model: WheatModel | null, useLitePlants: boolean) {
     return (
@@ -506,10 +572,11 @@ export default function FarmQuestScene3D({
                 markerColor={markerColor}
                 collected={collected}
                 selected={activeSampleId === item.sample.id}
-                dimmed={sceneActiveField !== "A"}
+                dimmed={activeField !== "A"}
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
+                hovered={hoveredSampleId === item.sample.id}
                 onHover={() => onHoverSample(item.sample.id)}
                 onSelect={() => onSelectSample(item.sample.id)}
               />
@@ -539,10 +606,11 @@ export default function FarmQuestScene3D({
                 markerColor={markerColor}
                 collected={false}
                 selected={activeSampleId === item.sample.id}
-                dimmed={sceneActiveField !== "B"}
+                dimmed={activeField !== "B"}
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
+                hovered={hoveredSampleId === item.sample.id}
                 onHover={() => onHoverSample(item.sample.id)}
                 onSelect={() => onSelectSample(item.sample.id)}
               />
@@ -561,10 +629,11 @@ export default function FarmQuestScene3D({
                 markerColor={markerColor}
                 collected={false}
                 selected={activeSampleId === item.sample.id}
-                dimmed={sceneActiveField !== "C"}
+                dimmed={activeField !== "C"}
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
+                hovered={hoveredSampleId === item.sample.id}
                 onHover={() => onHoverSample(item.sample.id)}
                 onSelect={() => onSelectSample(item.sample.id)}
               />
@@ -584,16 +653,21 @@ export default function FarmQuestScene3D({
       onPointerLeave={() => onHoverSample(null)}
     >
       <Image
-        src={FARM_BG_IMAGE_SRC}
+        src={backgroundImageSrc}
         alt=""
         fill
         sizes="100vw"
         priority
         className="pointer-events-none absolute inset-0 object-cover"
+        onError={() =>
+          setBackgroundImageIndex((current) =>
+            current < FARM_BG_IMAGE_PATHS.length - 1 ? current + 1 : current,
+          )
+        }
       />
 
       <Canvas
-        key={`field-focus-${sceneActiveField}-${liteMode ? "lite" : "std"}`}
+        key={`field-focus-${activeField}-${liteMode ? "lite" : "std"}`}
         dpr={liteMode ? [1, 1.2] : [1, 1.8]}
         shadows={!liteMode}
         gl={{ antialias: !liteMode, powerPreference: "high-performance", alpha: true }}
@@ -616,18 +690,19 @@ export default function FarmQuestScene3D({
             <meshStandardMaterial color="#b8a780" transparent opacity={0} depthWrite={false} />
           </mesh>
 
-          {visibleFieldKeys.map((field) => {
-            const active = sceneActiveField === field;
+          {(["A", "B", "C"] as const).map((field) => {
+            const active = activeField === field;
             const layout = FIELD_LAYOUT[field];
+            const visible = field === "A" || (field === "B" && stepIndex >= 2) || (field === "C" && stepIndex >= 4);
 
             return (
               <mesh key={field} position={[layout.centerX, -0.02, 0]} receiveShadow={!liteMode}>
                 <boxGeometry args={[layout.width, 0.05, layout.depth]} />
                 <meshStandardMaterial
                   color={active ? "#9ab66f" : "#b49d73"}
-                  transparent={false}
-                  opacity={1}
-                  depthWrite
+                  transparent={!visible}
+                  opacity={visible ? 1 : 0.38}
+                  depthWrite={visible}
                 />
               </mesh>
             );
@@ -653,7 +728,7 @@ export default function FarmQuestScene3D({
         <div className="pointer-events-none absolute left-3 top-3 flex gap-2 text-[11px]">
           <span
             className={`rounded-full border px-2 py-0.5 ${
-              sceneActiveField === "A"
+              activeField === "A"
                 ? immersive
                   ? "border-[#6f86b7] bg-[rgba(20,31,55,0.84)] text-[#d4e2ff]"
                   : "border-[#a7bbdf] bg-[#edf2ff] text-[#2a3f68]"
@@ -662,7 +737,33 @@ export default function FarmQuestScene3D({
                   : "border-[#d3dced] bg-white text-[#6a7591]"
             }`}
           >
-            第一块田
+            练习田
+          </span>
+          <span
+            className={`rounded-full border px-2 py-0.5 ${
+              activeField === "B"
+                ? immersive
+                  ? "border-[#6f86b7] bg-[rgba(20,31,55,0.84)] text-[#d4e2ff]"
+                  : "border-[#a7bbdf] bg-[#edf2ff] text-[#2a3f68]"
+                : immersive
+                  ? "border-[#4d5b7d] bg-[rgba(14,22,40,0.76)] text-[#9baccf]"
+                  : "border-[#d3dced] bg-white text-[#6a7591]"
+            }`}
+          >
+            测验田
+          </span>
+          <span
+            className={`rounded-full border px-2 py-0.5 ${
+              activeField === "C"
+                ? immersive
+                  ? "border-[#6f86b7] bg-[rgba(20,31,55,0.84)] text-[#d4e2ff]"
+                  : "border-[#a7bbdf] bg-[#edf2ff] text-[#2a3f68]"
+                : immersive
+                  ? "border-[#4d5b7d] bg-[rgba(14,22,40,0.76)] text-[#9baccf]"
+                  : "border-[#d3dced] bg-white text-[#6a7591]"
+            }`}
+          >
+            考试田
           </span>
         </div>
       )}
@@ -676,26 +777,6 @@ export default function FarmQuestScene3D({
           }`}
         >
           {liteMode ? "轻量模式" : "标准模式"}
-        </div>
-      )}
-
-      {showHoverCard && hoveredSample && (
-        <div
-          className={`pointer-events-none absolute bottom-3 right-3 min-w-[260px] rounded-lg border px-3 py-2 text-xs shadow-lg ${
-            immersive
-              ? "border-[#4c5e84] bg-[rgba(17,27,48,0.9)] text-[#d7e3ff]"
-              : "border-[#d1dcec] bg-[rgba(255,255,255,0.96)] text-[#364b74]"
-          }`}
-        >
-          <p className="font-semibold">{hoveredSample.name}</p>
-          <p className="mt-1">叶子：{hoveredSample.profile.leaf}</p>
-          <p>稻秆：{hoveredSample.profile.stem}</p>
-          <p>小稻秆：{hoveredSample.profile.tiller}</p>
-          <p>虫害：{hoveredSample.profile.pest}</p>
-          <p>稻穗：{hoveredSample.profile.panicle}</p>
-          <p className={`mt-1 font-semibold ${immersive ? "text-[#aecaef]" : "text-[#2d4775]"}`}>
-            {collectedIds.includes(hoveredSample.id) ? "点击可放回教材篮" : "点击可放进教材篮"}
-          </p>
         </div>
       )}
     </div>

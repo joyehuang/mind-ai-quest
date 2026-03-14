@@ -106,7 +106,7 @@ export default function Home() {
   const progressPercent = (completedCount / 2) * 100;
   const teacherBaseName = normalizeTeacherBase(name);
   const teacherName = teacherBaseName ? `${teacherBaseName}老师` : "";
-  const homeVideoSources = ["/homepage.mp4"];
+  const homeVideoSources = ["https://bear-public.tos-cn-shanghai.volces.com/homepage.mp4"];
 
   useEffect(() => {
     return () => {
@@ -241,7 +241,7 @@ export default function Home() {
               className="rounded-xl border border-[#9eb2d2] bg-[rgba(255,255,255,0.82)] px-4 py-2 text-sm text-[#36527f]"
               onClick={() => setScene("select")}
             >
-              返回关卡选择
+              返回首页
             </button>
             <button
               type="button"
@@ -261,7 +261,7 @@ export default function Home() {
       <FarmKnowledgeReveal
         playerName={teacherName}
         certificate={readFarmCertificate()}
-        returnLabel={farmEntryOrigin === "landing" ? "返回首页" : "返回游戏主页"}
+        returnLabel="返回首页"
         onSeen={markFarmKnowledgeSeen}
         onBack={() => setScene(farmEntryOrigin)}
       />
@@ -362,8 +362,8 @@ export default function Home() {
                   <input
                     autoFocus
                     className="h-13 min-w-0 flex-1 bg-transparent px-4 text-base text-[#3f260e] outline-none placeholder:text-[#b18659]"
-                    value={teacherBaseName}
-                    onChange={(event) => setName(normalizeTeacherBase(event.target.value))}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
                     maxLength={12}
                     placeholder="例如：小麦、阿谷、云朵"
                     onKeyDown={(event) => {
@@ -445,6 +445,12 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  // 关卡选择功能已关闭，直接跳转到关卡1
+  if (scene === "select") {
+    setScene("farm");
+    return null;
   }
 
   return (

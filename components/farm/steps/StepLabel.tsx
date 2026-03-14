@@ -33,10 +33,14 @@ const CLOUD_BASE_URL = "https://bear-public.tos-cn-shanghai.volces.com";
 
 function sampleImageCandidates(sampleId: string) {
   const sampleIndex = parseSampleIndex(sampleId);
+<<<<<<< HEAD
   return SAMPLE_IMAGE_EXTENSIONS.flatMap((ext) => [
     `${CLOUD_BASE_URL}/image${sampleIndex}${ext}`,
     `${CLOUD_BASE_URL}/images_a${sampleIndex}${ext}`,
   ]);
+=======
+  return [`https://bear-public.tos-cn-shanghai.volces.com/images_a${sampleIndex}.png`];
+>>>>>>> a5a173b714b8b5ed3318b3cb95c4ec4f3a7c1013
 }
 
 function LocalSampleImage({
@@ -55,7 +59,11 @@ function LocalSampleImage({
   const candidates = useMemo(() => sampleImageCandidates(sampleId), [sampleId]);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
+<<<<<<< HEAD
   const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? `${CLOUD_BASE_URL}/image1.png`;
+=======
+  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? "https://bear-public.tos-cn-shanghai.volces.com/images_a1.png";
+>>>>>>> a5a173b714b8b5ed3318b3cb95c4ec4f3a7c1013
 
   return (
     <Image

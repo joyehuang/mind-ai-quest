@@ -27,7 +27,7 @@ export default function StepCollect({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#b8c8e6] bg-[#edf2ff] p-4">
-        <p className="text-sm font-medium text-[#24385d]">第一步：在第一块田里挑教材</p>
+        <p className="text-sm font-medium text-[#24385d]">第一步：在练习田收集教材</p>
         <p className="mt-1 text-lg font-semibold text-[#1f3358]">
           候选 {poolSize} 株，已挑到 {collectedIds.length}/{target}
         </p>
@@ -38,7 +38,7 @@ export default function StepCollect({
           />
         </div>
         <p className="mt-2 text-xs text-[#4e5e82]">
-          请从 {poolSize} 个候选样本中挑选 {target} 个当教材。教材越丰富，小麦后面的小测验就越稳。
+          请从 {poolSize} 个候选样本中挑选 {target} 个当教材。教材越丰富，小麦后面在测验田和考试田的表现就越稳。
         </p>
         <p className="mt-1 text-xs text-[#4e5e82]">
           当前{FARM_METAPHOR_LABELS.textbookReadiness}（覆盖度+平衡度）：{Math.round(trainingQuality * 100)}%
@@ -53,7 +53,7 @@ export default function StepCollect({
       <div className="rounded-2xl border border-[#d0dbee] bg-white p-4">
         <p className="text-sm font-semibold text-[#263d67]">3D 操作说明</p>
         <p className="mt-2 text-sm text-[#5b6d93]">
-          直接在上方 3D 第一块田里点击稻株，把它放进或拿出教材篮；鼠标悬停时还能先看线索。
+          直接在上方 3D 练习田里点击稻株，把它放进或拿出教材篮；鼠标悬停时还能先看线索。
         </p>
         {hoveredSample ? (
           <div className="mt-3 rounded-xl border border-[#c9d6ee] bg-[#f3f7ff] p-3 text-sm text-[#32466d]">
