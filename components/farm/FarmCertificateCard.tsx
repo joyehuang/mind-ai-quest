@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useMobile } from "@/components/hooks/useMobile";
 import {
   buildFarmCertificateSvg,
   FARM_CERTIFICATE_HEIGHT,

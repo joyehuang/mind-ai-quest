@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useMobile } from "@/components/hooks/useMobile";
 import { toPercent } from "@/lib/farm/scoring";
 import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 import type { FinalSimulationResult } from "@/lib/farm/types";

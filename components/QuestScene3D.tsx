@@ -3,6 +3,7 @@
 import { Float, OrbitControls, RoundedBox } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
+import { useMobile } from "./hooks/useMobile";
 import type { Group, Mesh } from "three";
 
 function Drone() {
@@ -148,8 +149,10 @@ function SceneContent() {
 }
 
 export default function QuestScene3D() {
+  const { isMobile } = useMobile();
+  
   return (
-    <div className="h-[390px] w-full overflow-hidden rounded-[28px] border border-[#bfd5f4] bg-gradient-to-b from-[#b2dcff] via-[#dff1ff] to-[#f8ffec]">
+    <div className={`w-full overflow-hidden rounded-[28px] border border-[#bfd4f4] bg-gradient-to-b from-[#b2dcff] via-[#dff1ff] to-[#f8ffec] ${isMobile ? 'h-[280px]' : 'h-[390px]'}`}>
       <Canvas camera={{ position: [0, 2.8, 5.4], fov: 44 }}>
         <SceneContent />
         <OrbitControls

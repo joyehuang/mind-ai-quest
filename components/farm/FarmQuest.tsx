@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useMobile } from "@/components/hooks/useMobile";
 import {
   FARM_STEPS,
   FIELD_A_SAMPLES,
@@ -63,6 +64,7 @@ type FarmAssistantHintKey = keyof typeof FARM_ASSISTANT_MESSAGES.tuneHints;
 
 export default function FarmQuest({ playerName, playerStyle, onBack, onComplete }: FarmQuestProps) {
   const [step, setStep] = useState(0);
+  const { isMobile, windowWidth } = useMobile();
 
   const [collectedIds, setCollectedIds] = useState<string[]>([]);
   const [labels, setLabels] = useState<Record<string, RiceLabel>>({});
@@ -384,11 +386,15 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     );
   }
 
-  function renderWorkbenchStage(title: string, children: ReactNode, contentClassName = "min-h-0 flex-1 overflow-auto p-3 sm:p-4") {
+  function renderWorkbenchStage(title: string, children: ReactNode, contentClassName = "min-h-0 flex-1 overflow-auto") {
+    // 根据屏幕大小调整内边距
+    const contentPadding = isMobile ? "p-2" : "p-3 sm:p-4";
+    const headerPadding = isMobile ? "px-2 py-2" : "px-3 py-2.5 sm:px-4";
+    
     return (
-      <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] z-30 flex justify-center px-3 sm:top-[142px] sm:px-6">
-        <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
-          <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
+      <div className={`pointer-events-auto absolute inset-x-0 bottom-3 ${isMobile ? "top-[100px] px-1" : "top-[138px] sm:top-[142px] px-3 sm:px-6"} z-30 flex justify-center`}>
+        <div className={`flex h-full w-full ${isMobile ? "max-w-[95vw]" : "max-w-[1180px]"} flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md`}>
+          <div className={`flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] ${headerPadding}`}>
             <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
               {step + 1}/{FARM_STEPS.length}
             </span>
@@ -413,12 +419,12 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </div>
 
           {assistantMessage && (
-            <div className="border-b border-[#dbe5f5] bg-[linear-gradient(180deg,rgba(255,249,238,0.96),rgba(245,248,255,0.92))] px-3 py-3 sm:px-4">
-              {renderAssistantBubble("w-full max-w-[760px]")}
+            <div className={`border-b border-[#dbe5f5] bg-[linear-gradient(180deg,rgba(255,249,238,0.96),rgba(245,248,255,0.92))] ${isMobile ? "px-2 py-2" : "px-3 py-3 sm:px-4"}`}>
+              {renderAssistantBubble(isMobile ? "max-w-[95vw]" : "max-w-[760px]")}
             </div>
           )}
 
-          <div className={contentClassName}>{children}</div>
+          <div className={`${contentClassName} ${contentPadding}`}>{children}</div>
         </div>
       </div>
     );

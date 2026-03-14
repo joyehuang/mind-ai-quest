@@ -4,6 +4,7 @@ import { Clone, Html, OrbitControls } from "@react-three/drei";
 import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useMobile } from "@/components/hooks/useMobile";
 import { Box3, Mesh, Object3D, Vector3 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { FarmSample, ModelJudgment, PredictionRecord, RiceLabel } from "@/lib/farm/types";

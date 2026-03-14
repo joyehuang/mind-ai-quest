@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useMobile } from "@/components/hooks/useMobile";
 import type { FarmSample, RiceLabel } from "@/lib/farm/types";
 import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 
@@ -33,14 +34,10 @@ const CLOUD_BASE_URL = "https://bear-public.tos-cn-shanghai.volces.com";
 
 function sampleImageCandidates(sampleId: string) {
   const sampleIndex = parseSampleIndex(sampleId);
-<<<<<<< HEAD
   return SAMPLE_IMAGE_EXTENSIONS.flatMap((ext) => [
     `${CLOUD_BASE_URL}/image${sampleIndex}${ext}`,
     `${CLOUD_BASE_URL}/images_a${sampleIndex}${ext}`,
   ]);
-=======
-  return [`https://bear-public.tos-cn-shanghai.volces.com/images_a${sampleIndex}.png`];
->>>>>>> a5a173b714b8b5ed3318b3cb95c4ec4f3a7c1013
 }
 
 function LocalSampleImage({
@@ -57,13 +54,7 @@ function LocalSampleImage({
   priority?: boolean;
 }) {
   const candidates = useMemo(() => sampleImageCandidates(sampleId), [sampleId]);
-  const [candidateIndex, setCandidateIndex] = useState(0);
-
-<<<<<<< HEAD
   const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? `${CLOUD_BASE_URL}/image1.png`;
-=======
-  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? "https://bear-public.tos-cn-shanghai.volces.com/images_a1.png";
->>>>>>> a5a173b714b8b5ed3318b3cb95c4ec4f3a7c1013
 
   return (
     <Image
@@ -88,14 +79,20 @@ export default function StepLabel({
   className,
 }: StepLabelProps) {
   const [hoveredSampleId, setHoveredSampleId] = useState<string | null>(null);
+  const { isMobile, windowWidth } = useMobile();
   const previewSampleId = hoveredSampleId ?? activeSampleId;
   const activeSample = samples.find((sample) => sample.id === previewSampleId) ?? samples[0] ?? null;
   const labeledCount = samples.filter((sample) => labels[sample.id] !== undefined).length;
 
+  // 根据屏幕大小调整样式
+  const sidebarWidth = isMobile ? "100%" : "286px";
+  const padding = isMobile ? "p-3" : "p-4";
+  const gap = isMobile ? "gap-2" : "gap-4";
+
   return (
     <div className={`h-full min-h-0 ${className ?? ""}`}>
-      <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[286px_minmax(0,1fr)]">
-        <aside className="flex min-h-0 flex-col rounded-2xl border border-[#cfd9eb] bg-white p-4">
+      <div className={`grid h-full min-h-0 ${gap} ${isMobile ? "grid-cols-1" : "lg:grid-cols-[286px_minmax(0,1fr)]"}`}>
+        <aside className={`flex min-h-0 flex-col rounded-2xl border border-[#cfd9eb] bg-white ${padding}`}>
           <p className="text-sm font-semibold text-[#263e67]">教材篮</p>
           <p className="mt-1 text-xs text-[#5e6e94]">{FARM_METAPHOR_LABELS.answerSticker}进度 {labeledCount}/{samples.length}</p>
 

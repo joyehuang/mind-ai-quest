@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useMobile } from "@/components/hooks/useMobile";
 import type { FarmSample } from "@/lib/farm/types";
 import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 
@@ -23,10 +24,15 @@ export default function StepCollect({
   collectMessage,
 }: StepCollectProps) {
   const progress = Math.round((collectedIds.length / Math.max(target, 1)) * 100);
+  const { isMobile, windowWidth } = useMobile();
+  
+  // 根据屏幕大小调整样式
+  const padding = isMobile ? "p-3" : "p-4";
+  const gap = isMobile ? "gap-2" : "gap-4";
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-[#b8c8e6] bg-[#edf2ff] p-4">
+    <div className={`space-y-${gap.replace('gap-', '')}`}>
+      <div className={`rounded-2xl border border-[#b8c8e6] bg-[#edf2ff] ${padding}`}>
         <p className="text-sm font-medium text-[#24385d]">第一步：在练习田收集教材</p>
         <p className="mt-1 text-lg font-semibold text-[#1f3358]">
           候选 {poolSize} 株，已挑到 {collectedIds.length}/{target}
@@ -50,7 +56,7 @@ export default function StepCollect({
         )}
       </div>
 
-      <div className="rounded-2xl border border-[#d0dbee] bg-white p-4">
+      <div className={`rounded-2xl border border-[#d0dbee] bg-white ${padding}`}>
         <p className="text-sm font-semibold text-[#263d67]">3D 操作说明</p>
         <p className="mt-2 text-sm text-[#5b6d93]">
           直接在上方 3D 练习田里点击稻株，把它放进或拿出教材篮；鼠标悬停时还能先看线索。
@@ -72,7 +78,7 @@ export default function StepCollect({
         )}
       </div>
 
-      <div className="rounded-2xl border border-[#d0dbee] bg-white p-4">
+      <div className={`rounded-2xl border border-[#d0dbee] bg-white ${padding}`}>
         <p className="text-sm font-semibold text-[#263d67]">已挑好的教材（来自 3D 点击）</p>
         {collectedSamples.length > 0 ? (
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

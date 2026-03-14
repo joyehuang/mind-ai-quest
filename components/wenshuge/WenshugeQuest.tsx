@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import AssistantNarrator from "@/components/AssistantNarrator";
+import { useMobile } from "@/components/hooks/useMobile";
 import {
   WENSHUGE_FEATURES,
   WENSHUGE_TRAIN_RECORDS,
@@ -64,6 +65,7 @@ export default function WenshugeQuest({
   onBack,
   onComplete,
 }: WenshugeQuestProps) {
+  const { isMobile } = useMobile();
   const [step, setStep] = useState(0);
   const [selectedFeatureKeys, setSelectedFeatureKeys] =
     useState<WenshugeFeatureKey[]>(ALL_FEATURE_KEYS);
@@ -86,6 +88,7 @@ export default function WenshugeQuest({
 
   const [showRawData, setShowRawData] = useState(false);
   const [liteMode, setLiteMode] = useState(false);
+  const { isMobile, windowWidth } = useMobile();
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -341,11 +344,11 @@ export default function WenshugeQuest({
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(60,128,162,0.24),rgba(7,18,28,0.86)_68%)]" />
 
-      <header className="absolute inset-x-4 top-4 z-20 flex items-start justify-between gap-3">
-        <div className="pointer-events-auto max-w-[620px] rounded-full bg-[rgba(8,24,38,0.66)] px-5 py-3 text-[#dff4ff] backdrop-blur-md">
+      <header className={`absolute ${isMobile ? "inset-x-2 top-2" : "inset-x-4 top-4"} z-20 flex items-start justify-between gap-3`}>
+        <div className={`pointer-events-auto max-w-[620px] rounded-full bg-[rgba(8,24,38,0.66)] ${isMobile ? "px-3 py-2" : "px-5 py-3"} text-[#dff4ff] backdrop-blur-md`}>
           <p className="text-xs uppercase tracking-[0.2em] text-[#9bc8da]">Wenshuge Quest</p>
-          <p className="font-display mt-1 text-lg">主题关卡2：文枢阁非监督学习小游戏（V1）</p>
-          <p className="mt-1 text-xs text-[#8fb7c9]">
+          <p className={`font-display ${isMobile ? "text-sm mt-0.5" : "text-lg mt-1"}`}>主题关卡2：文枢阁非监督学习小游戏（V1）</p>
+          <p className={`mt-1 text-xs text-[#8fb7c9]`}>
             第 {step + 1} 步 / 共 {STEPS.length} 步 · {STEPS[step]}
           </p>
         </div>

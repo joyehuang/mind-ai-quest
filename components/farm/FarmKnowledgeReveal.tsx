@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useMobile } from "@/components/hooks/useMobile";
 import FarmCertificateCard from "@/components/farm/FarmCertificateCard";
 import { FARM_KNOWLEDGE_CARDS, type FarmCertificateSnapshot } from "@/lib/farm/terminology";
 

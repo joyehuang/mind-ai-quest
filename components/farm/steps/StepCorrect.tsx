@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useMobile } from "@/components/hooks/useMobile";
 import { toPercent } from "@/lib/farm/scoring";
 import { FARM_METAPHOR_LABELS } from "@/lib/farm/terminology";
 import type { ModelJudgment, PredictionRecord } from "@/lib/farm/types";
@@ -24,6 +25,11 @@ export default function StepCorrect({
   onReview,
 }: StepCorrectProps) {
   const reviewed = Object.keys(reviews).length;
+  const { isMobile, windowWidth } = useMobile();
+
+  // 根据屏幕大小调整样式
+  const padding = isMobile ? "p-3" : "p-4";
+  const gap = isMobile ? "gap-2" : "gap-3";
 
   return (
     <div className="space-y-4">
