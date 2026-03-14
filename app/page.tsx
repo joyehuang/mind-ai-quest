@@ -461,7 +461,7 @@ export default function Home() {
         >
           <button
             type="button"
-            className="mt-5 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="-mt-4 transition-transform hover:scale-[1.02] active:scale-[0.98]"
             onClick={handleStartOnboarding}
           >
             <Image
@@ -469,7 +469,7 @@ export default function Home() {
               alt="开始游戏"
               width={2352}
               height={1568}
-              className="h-auto w-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
+              className="h-auto w-auto scale-[0.4] drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
               priority
             />
           </button>
@@ -499,9 +499,6 @@ export default function Home() {
 
       <div className="pointer-events-auto absolute right-4 top-4 w-[min(90vw,340px)] rounded-3xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.5)] p-4 text-[#f7efe2] backdrop-blur-md">
         <p className="text-xs uppercase tracking-[0.22em] text-[#d6c2a1]">Game Home</p>
-        <p className="mt-1 text-lg font-semibold text-[#faf2e6]">
-          {teacherName || "小老师"} <span className="text-sm font-medium text-[#d9c8af]">· {style}</span>
-        </p>
 
         <div className="mt-3">
           <div className="flex items-center justify-between text-[11px] text-[#d4c0a0]">
@@ -545,7 +542,7 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="pointer-events-auto absolute bottom-4 left-4 w-[min(46vw,360px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
+      <div className="pointer-events-auto absolute bottom-4 left-4 w-[min(40vw,300px)] scale-75 origin-bottom-left rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
         <p className="text-xs text-[#e0cda8]">基础任务</p>
         <p className="mt-1 font-display text-2xl">关卡1：保护稻田</p>
         <p className="mt-1 text-xs text-[#e9dcc3]">
