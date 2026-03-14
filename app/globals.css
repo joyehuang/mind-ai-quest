@@ -111,6 +111,14 @@ select {
   outline-offset: 2px;
 }
 
+.teacher-name-input:focus,
+.teacher-name-input:focus-visible {
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  box-shadow: none;
+}
+
 ::selection {
   background: rgba(47, 115, 232, 0.2);
 }

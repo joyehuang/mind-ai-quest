@@ -361,7 +361,7 @@ export default function Home() {
                 <div className="mt-2 flex items-center overflow-hidden rounded-2xl border-2 border-[#e9cb91] bg-white/82 shadow-inner">
                   <input
                     autoFocus
-                    className="h-13 min-w-0 flex-1 bg-transparent px-4 text-base text-[#3f260e] outline-none placeholder:text-[#b18659]"
+                    className="teacher-name-input h-13 min-w-0 flex-1 bg-transparent px-4 text-base text-[#3f260e] outline-none placeholder:text-[#b18659]"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     maxLength={12}

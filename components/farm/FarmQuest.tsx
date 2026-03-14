@@ -457,13 +457,19 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(168,142,91,0.2),rgba(7,11,9,0.74)_76%)]" />
 
       <div className="pointer-events-none absolute inset-0 z-20">
-        <div className="pointer-events-auto absolute left-3 top-3 w-[min(86vw,340px)] scale-[1.2] origin-top-left rounded-2xl border border-[#ffd700] bg-[rgba(255,255,240,0.98)] px-3 py-2 text-[#4a3728] backdrop-blur-md">
+        <div
+          className={`pointer-events-auto absolute left-3 top-3 origin-top-left rounded-2xl border border-[#ffd700] bg-[rgba(255,255,240,0.98)] text-[#4a3728] backdrop-blur-md ${
+            isMobile
+              ? "w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] px-4 py-3"
+              : "w-[min(86vw,340px)] scale-[1.2] px-3 py-2"
+          }`}
+        >
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b6914]">Farm Quest</p>
-          <p className="font-display mt-1 text-base">主题关卡1：保护我们的稻田</p>
-          <p className="mt-1 text-[11px] text-[#7a5a1f]">
+          <p className={`font-display mt-1 ${isMobile ? "text-[1.1rem] leading-8" : "text-base"}`}>主题关卡1：保护我们的稻田</p>
+          <p className={`mt-1 text-[#7a5a1f] ${isMobile ? "text-xs leading-6" : "text-[11px]"}`}>
             第 {step + 1} 步 / 共 {FARM_STEPS.length} 步 · {FARM_STEPS[step]}
           </p>
-          <p className="mt-1 text-[11px] text-[#7a5a1f]">
+          <p className={`mt-1 text-[#7a5a1f] ${isMobile ? "text-xs leading-6" : "text-[11px]"}`}>
             {playerName}（{playerStyle}）
           </p>
           {step === 0 && (
@@ -474,10 +480,10 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
                   style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
                 />
               </div>
-              <p className="mt-1 text-[11px] text-[#7a5a1f]">
+              <p className={`mt-1 text-[#7a5a1f] ${isMobile ? "text-xs leading-6" : "text-[11px]"}`}>
                 教材进度：{collectedIds.length}/{TRAINING_TARGET}
               </p>
-              {collectMessage && <p className="mt-1 text-[10px] text-[#8b6914]">{collectMessage}</p>}
+              {collectMessage && <p className={`mt-1 text-[#8b6914] ${isMobile ? "text-[11px] leading-5" : "text-[10px]"}`}>{collectMessage}</p>}
             </>
           )}
         </div>

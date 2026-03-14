@@ -522,6 +522,7 @@ export default function FarmQuestScene3D({
   onHoverSample,
   onSelectSample,
 }: FarmQuestScene3DProps) {
+  const { isMobile } = useMobile();
   const positionedA = useMemo(() => buildPositions(fieldASamples, "A"), [fieldASamples]);
   const positionedB = useMemo(() => buildPositions(fieldBSamples, "B"), [fieldBSamples]);
   const positionedC = useMemo(() => buildPositions(fieldCSamples, "C"), [fieldCSamples]);
@@ -542,6 +543,14 @@ export default function FarmQuestScene3D({
 
   const activeField = stepIndex <= 1 ? "A" : stepIndex <= 3 ? "B" : "C";
   const cameraFocusX = FIELD_LAYOUT[activeField].centerX * FIELD_RENDER_SCALE;
+  const cameraPosition: [number, number, number] = isMobile
+    ? [cameraFocusX, 4.9, 8.6]
+    : [cameraFocusX, 4.2, 6.7];
+  const cameraFov = isMobile ? 52 : 44;
+  const controlsTargetY = isMobile ? 0.12 : 0.18;
+  const minDistance = isMobile ? 7.2 : 5.4;
+  const maxDistance = isMobile ? 11.2 : 9.4;
+  const rotateSpeed = isMobile ? 0.28 : liteMode ? 0.35 : 0.78;
   const hoveredSample = hoveredSampleId ? sampleById[hoveredSampleId] ?? null : null;
   const enableDetailedModel = !liteMode;
   const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel(WHEAT_MODEL_PATHS);
@@ -668,11 +677,11 @@ export default function FarmQuestScene3D({
       />
 
       <Canvas
-        key={`field-focus-${activeField}-${liteMode ? "lite" : "std"}`}
+        key={`field-focus-${activeField}-${liteMode ? "lite" : "std"}-${isMobile ? "mobile" : "desktop"}`}
         dpr={liteMode ? [1, 1.2] : [1, 1.8]}
         shadows={!liteMode}
         gl={{ antialias: !liteMode, powerPreference: "high-performance", alpha: true }}
-        camera={{ position: [cameraFocusX, 4.2, 6.7], fov: 44, near: 0.2, far: 40 }}
+        camera={{ position: cameraPosition, fov: cameraFov, near: 0.2, far: 40 }}
       >
         <ambientLight intensity={0.78} />
         <directionalLight
@@ -716,12 +725,12 @@ export default function FarmQuestScene3D({
 
         <OrbitControls
           enablePan={false}
-          target={[cameraFocusX, 0.18, 0]}
-          minDistance={5.4}
-          maxDistance={9.4}
+          target={[cameraFocusX, controlsTargetY, 0]}
+          minDistance={minDistance}
+          maxDistance={maxDistance}
           minPolarAngle={Math.PI / 4.6}
           maxPolarAngle={Math.PI / 2.1}
-          rotateSpeed={liteMode ? 0.35 : 0.78}
+          rotateSpeed={rotateSpeed}
         />
       </Canvas>
 
