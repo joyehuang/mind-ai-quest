@@ -42,9 +42,9 @@ export default function StepTuneFinal({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#cfd8ec] bg-white p-4">
-        <p className="text-sm font-semibold text-[#274066]">第五步：给小麦加技能，再去第三块田毕业考</p>
+        <p className="text-sm font-semibold text-[#274066]">第五步：小麦参加毕业考试</p>
         <p className="mt-1 text-xs text-[#60729b]">
-          毕业考成绩会综合你前面贴贴纸的表现、检查猜测的表现，还有现在给小麦选的技能搭配。
+          让小麦参加**考试田的毕业考试**！考试田的稻子是小麦从来没见过的，这是检验它真正学会没有的终极测试。你可以给小麦加一些技能来提高成绩哦！
         </p>
         <p className="mt-1 text-xs text-[#60729b]">{FARM_METAPHOR_LABELS.textbookReadiness}：{toPercent(trainingSetQuality)}</p>
 
@@ -128,7 +128,7 @@ export default function StepTuneFinal({
           className="mt-4 rounded-xl bg-[#2d4f8d] px-4 py-2 text-sm font-semibold text-[#f4f8ff]"
           onClick={onRun}
         >
-          带小麦参加第三块田毕业考
+          带小麦参加考试田毕业考
         </button>
       </div>
 
@@ -144,7 +144,7 @@ export default function StepTuneFinal({
               <p className="mt-1 text-xl font-semibold text-[#294f89]">{toPercent(step4Score)}</p>
             </article>
             <article className="rounded-2xl border border-[#d0dbee] bg-white p-4">
-              <p className="text-xs text-[#66779f]">第二块田答对率</p>
+              <p className="text-xs text-[#66779f]">测验田答对率</p>
               <p className="mt-1 text-xl font-semibold text-[#294f89]">
                 {toPercent(finalResult.score.secondFieldAccuracy)}
               </p>
@@ -154,7 +154,7 @@ export default function StepTuneFinal({
               <p className="mt-1 text-xl font-semibold text-[#294f89]">{toPercent(trainingSetQuality)}</p>
             </article>
             <article className="rounded-2xl border border-[#e0bf84] bg-[#fff6e8] p-4">
-              <p className="text-xs text-[#835d2d]">第三块田毕业考答对率</p>
+              <p className="text-xs text-[#835d2d]">考试田毕业考答对率</p>
               <p className="mt-1 text-2xl font-semibold text-[#9a6424]">
                 {toPercent(finalResult.score.finalAccuracy)}
               </p>
@@ -190,7 +190,7 @@ export default function StepTuneFinal({
         </>
       ) : (
         <p className="rounded-xl border border-[#d1dbee] bg-white px-3 py-3 text-sm text-[#556995]">
-          点击按钮后，会展示第三块田的毕业考成绩和小麦的迷糊程度变化。
+          点击按钮后，会展示考试田的毕业考成绩和小麦的迷糊程度变化。
         </p>
       )}
     </div>

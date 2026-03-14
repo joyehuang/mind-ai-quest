@@ -452,9 +452,9 @@ export const FIELD_C_SAMPLES: FarmSample[] = [
 export const ALL_FARM_SAMPLES = [...FIELD_A_SAMPLES, ...FIELD_B_SAMPLES, ...FIELD_C_SAMPLES];
 
 export const FARM_STEPS = [
-  "第一块田挑教材",
-  "给练习题贴贴纸",
-  "教小麦做小测验",
-  "检查小麦的猜测",
-  "给小麦加技能",
+  "练习田收集数据",
+  "给教材贴上答案标签",
+  "小麦复习并参加测验",
+  "检查小麦的测验答案",
+  "小麦参加毕业考试",
 ] as const;

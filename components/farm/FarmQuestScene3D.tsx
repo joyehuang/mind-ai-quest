@@ -743,7 +743,7 @@ export default function FarmQuestScene3D({
                   : "border-[#d3dced] bg-white text-[#6a7591]"
             }`}
           >
-            第一块田
+            练习田
           </span>
           <span
             className={`rounded-full border px-2 py-0.5 ${
@@ -756,7 +756,7 @@ export default function FarmQuestScene3D({
                   : "border-[#d3dced] bg-white text-[#6a7591]"
             }`}
           >
-            第二块田
+            测验田
           </span>
           <span
             className={`rounded-full border px-2 py-0.5 ${
@@ -769,7 +769,7 @@ export default function FarmQuestScene3D({
                   : "border-[#d3dced] bg-white text-[#6a7591]"
             }`}
           >
-            第三块田
+            考试田
           </span>
         </div>
       )}

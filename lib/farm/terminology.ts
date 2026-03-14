@@ -75,7 +75,7 @@ export const FARM_KNOWLEDGE_CARDS: FarmKnowledgeCard[] = [
     kidTerm: "答对率",
     realTerm: "准确率",
     title: "答对率就是小麦一共答对了多少",
-    description: "你在第二块田和第三块田看到的百分比，就是它答对题目的比例。",
+    description: "你在测验田和考试田看到的百分比，就是它答对题目的比例。",
   },
   {
     kidTerm: "死记硬背 / 还没学够",

@@ -43,11 +43,13 @@ interface FarmQuestProps {
 }
 
 const FARM_ASSISTANT_MESSAGES = {
-  collect: "嘿！请你先点击页面上的稻子，帮我先挑一些给小麦看的教材吧，一共需要收集10个哦！",
-  label: "你是聪明的小侦探，请仔细阅读文字和图片，给这个稻子贴上健康或不健康的答案贴纸哦！",
-  trained: `现在你已经帮小麦搭好了第一个${FARM_METAPHOR_LABELS.brain}啦！不过它偶尔还会猜错，我们一起去检查一下吧！`,
-  correct: `现在我们看看${FARM_METAPHOR_LABELS.guess}和真正情况差在哪里吧！点击按钮来判断小麦有没有猜对哦！`,
-  tune: "现在页面上有几个小技能，可以帮助你优化小麦，点击看看吧！",
+  collect: "现在你需要从**练习田**里收集稻子样本，这些是教小麦认识健康/不健康稻子的**教材**，是训练AI模型所必需的练习题。点击稻子即可收集，一共需要10株！",
+  collectReady: "太棒了！10株教材都收集好了！点击右下角的「下一步」按钮继续吧！",
+  label: "现在给收集来的教材**贴上答案**。告诉小麦哪些稻子是健康的、哪些是不健康的，这样小麦才能学习它们的区别。就像老师给学生批改作业一样！",
+  labelReady: "完美！所有贴纸都贴好了！点击右上角的「下一步」按钮继续吧！",
+  trained: `小麦正在**复习练习田的教材**，学习分辨稻子健康与否。复习结束后，它会去**测验田**尝试分辨新的稻子——就像你学完课后做小测验一样！`,
+  correct: `来看看小麦在**测验田**的表现吧！当小麦猜错时，请你帮忙纠正它。你的每一次纠正，都会让小麦的判断变得更准确。`,
+  tune: "最后，让小麦参加**考试田的毕业考试**！考试田的稻子是小麦从来没见过的，这是检验它真正学会没有的终极测试。你可以给小麦加一些技能来提高成绩哦！",
   complete: "太厉害了！我现在能更好地分辨稻子的好坏啦！",
   tuneHints: {
     augment: "这个技能可以让小麦把同一张图翻转、放大、变色再多看几遍，记得更牢哦！",
@@ -200,6 +202,27 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     finalResult,
   ]);
 
+  function resetQuest() {
+    if (hoverLeaveTimerRef.current) {
+      clearTimeout(hoverLeaveTimerRef.current);
+      hoverLeaveTimerRef.current = null;
+    }
+    setStep(0);
+    setCollectedIds([]);
+    setLabels({});
+    setActiveSampleId(FIELD_A_SAMPLES[0]?.id ?? null);
+    setHoveredSampleId(null);
+    setCollectMessage("");
+    setTrainProgress(0);
+    setFieldBReviews({});
+    setDataAugment(false);
+    setLayers(3);
+    setLearningRate(5);
+    setFinalResult(null);
+    setAssistantOverride(null);
+    setActiveTuneHint(null);
+  }
+
   function toggleCollect(sampleId: string) {
     setCollectedIds((previous) => {
       const exists = previous.includes(sampleId);
@@ -317,6 +340,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     setStep((current) => current + 1);
   }
 
+  const progress = ((step + 1) / FARM_STEPS.length) * 100;
   const isLabelStep = step === 1;
   const isTrainStep = step === 2;
   const isCorrectionStep = step === 3;
@@ -324,10 +348,10 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
   const isCenterWorkbenchStep = isLabelStep || isTrainStep || isCorrectionStep || isTuneStep;
   const baseAssistantMessage = useMemo(() => {
     if (step === 0) {
-      return FARM_ASSISTANT_MESSAGES.collect;
+      return canNext ? FARM_ASSISTANT_MESSAGES.collectReady : FARM_ASSISTANT_MESSAGES.collect;
     }
     if (step === 1) {
-      return FARM_ASSISTANT_MESSAGES.label;
+      return canNext ? FARM_ASSISTANT_MESSAGES.labelReady : FARM_ASSISTANT_MESSAGES.label;
     }
     if (step === 2) {
       return trainProgress >= 100 ? FARM_ASSISTANT_MESSAGES.trained : null;
@@ -336,7 +360,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       return FARM_ASSISTANT_MESSAGES.correct;
     }
     return finalResult ? FARM_ASSISTANT_MESSAGES.complete : FARM_ASSISTANT_MESSAGES.tune;
-  }, [finalResult, step, trainProgress]);
+  }, [canNext, finalResult, step, trainProgress]);
   const assistantMessage = assistantOverride ?? baseAssistantMessage;
 
   function handleTuneHintSelect(hint: FarmAssistantHintKey) {
@@ -424,52 +448,41 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
         onSelectSample={handleSceneSelect}
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(206,174,110,0.16)_0%,rgba(88,68,32,0.1)_42%,rgba(7,11,9,0.34)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(168,142,91,0.2),rgba(7,11,9,0.74)_76%)]" />
 
       <div className="pointer-events-none absolute inset-0 z-20">
-        <div className="pointer-events-auto absolute left-3 top-3 w-[min(86vw,340px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] px-3 py-2 text-[#eaf0ff] backdrop-blur-md">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#9fb4e3]">Farm Quest</p>
+        <div className="pointer-events-auto absolute left-3 top-3 w-[min(86vw,340px)] scale-[1.2] origin-top-left rounded-2xl border border-[#ffd700] bg-[rgba(255,255,240,0.98)] px-3 py-2 text-[#4a3728] backdrop-blur-md">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b6914]">Farm Quest</p>
           <p className="font-display mt-1 text-base">主题关卡1：保护我们的稻田</p>
-          <p className="mt-1 text-[11px] text-[#a8b8dc]">
+          <p className="mt-1 text-[11px] text-[#7a5a1f]">
             第 {step + 1} 步 / 共 {FARM_STEPS.length} 步 · {FARM_STEPS[step]}
           </p>
-          <p className="mt-1 text-[11px] text-[#b4c3e6]">
+          <p className="mt-1 text-[11px] text-[#7a5a1f]">
             {playerName}（{playerStyle}）
           </p>
           {step === 0 && (
             <>
-              <div className="mt-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.1)]">
+              <div className="mt-2 overflow-hidden rounded-full bg-[rgba(255,215,0,0.2)]">
                 <div
-                  className="h-1.5 rounded-full bg-gradient-to-r from-[#7cb6ff] to-[#f0c97d]"
+                  className="h-1.5 rounded-full bg-gradient-to-r from-[#ffd700] to-[#ffed4e]"
                   style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
                 />
               </div>
-              <p className="mt-1 text-[11px] text-[#d9e7ff]">
+              <p className="mt-1 text-[11px] text-[#7a5a1f]">
                 教材进度：{collectedIds.length}/{TRAINING_TARGET}
               </p>
-              {collectMessage && <p className="mt-1 text-[10px] text-[#ffe1bd]">{collectMessage}</p>}
+              {collectMessage && <p className="mt-1 text-[10px] text-[#8b6914]">{collectMessage}</p>}
             </>
           )}
         </div>
 
         {!isCenterWorkbenchStep &&
           renderAssistantBubble(
-            "pointer-events-auto absolute left-3 right-3 top-[194px] w-auto sm:right-[292px] sm:top-[166px] md:right-auto md:w-[min(50vw,500px)]",
+            "pointer-events-auto absolute left-3 right-3 top-[280px] w-auto sm:right-[292px] sm:top-[240px] md:right-auto md:w-[min(50vw,500px)] animate-[slideDown_0.5s_ease-out]",
           )}
 
-        {hoveredSample && !isCenterWorkbenchStep && (
-          <div className="pointer-events-auto absolute right-3 top-[104px] hidden w-[280px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.76)] px-3 py-2 text-[11px] text-[#d7e3ff] backdrop-blur md:block">
-            <p className="font-semibold">{hoveredSample.name}</p>
-            <p className="mt-1">叶子：{hoveredSample.profile.leaf}</p>
-            <p>稻秆：{hoveredSample.profile.stem}</p>
-            <p>小稻秆：{hoveredSample.profile.tiller}</p>
-            <p>虫害：{hoveredSample.profile.pest}</p>
-            <p>稻穗：{hoveredSample.profile.panicle}</p>
-          </div>
-        )}
-
         {!isCenterWorkbenchStep && (
-          <div className="pointer-events-auto absolute bottom-3 right-3 hidden w-[220px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl sm:block">
+          <div className="pointer-events-auto absolute bottom-3 right-3 hidden scale-[2] origin-bottom-right w-[220px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.78)] p-2 text-[#e7eeff] backdrop-blur-xl sm:block">
             <button
               type="button"
               className="w-full rounded-full bg-[rgba(255,255,255,0.16)] px-4 py-2 text-[11px] text-[#d8e4ff]"
@@ -490,7 +503,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isLabelStep &&
           renderWorkbenchStage(
-            "第二步专注模式：请在中心工作台给全部练习题贴上答案贴纸",
+            "第二步专注模式：请在中心工作台给教材贴上答案标签",
             <StepLabel
               samples={trainingSamples}
               labels={labels}
@@ -504,7 +517,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isTrainStep &&
           renderWorkbenchStage(
-            "第三步专注模式：请在中心工作台看小麦复习，并挑战第二块田小测验",
+            "第三步专注模式：请在中心工作台看小麦复习，并参加测验",
             <StepTrainTest
               trainProgress={trainProgress}
               step2Score={step2Score}
@@ -518,7 +531,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isCorrectionStep &&
           renderWorkbenchStage(
-            "第四步专注模式：请在中心工作台检查第二块田的猜测",
+            "第四步专注模式：请在中心工作台检查小麦的测验答案",
             <StepCorrect
               predictions={fieldBPredictions}
               reviews={fieldBReviews}
@@ -532,7 +545,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
         {isTuneStep &&
           renderWorkbenchStage(
-            "第五步专注模式：请在中心工作台给小麦加技能，并参加第三块田毕业考",
+            "第五步专注模式：请在中心工作台给小麦加技能，并参加考试田毕业考",
             <StepTuneFinal
               dataAugment={dataAugment}
               layers={layers}
