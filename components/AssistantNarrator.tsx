@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
+import { useMobile } from "./hooks/useMobile";
 
 type NarratorTheme = "farm" | "wenshuge";
 type Position = "left" | "bottom";
@@ -41,18 +42,23 @@ export default function AssistantNarrator({
   position = "left",
   className,
 }: AssistantNarratorProps) {
+  const { isMobile } = useMobile();
   const seed = useMemo(() => hashText(`${name}-${style}`), [name, style]);
+
+  // 移动端缩小样式
+  const avatarSize = isMobile ? 64 : (position === "bottom" ? 80 : 120);
+  const avatarSizeSm = isMobile ? "64px" : (position === "bottom" ? "80px" : "120px");
+  const bubbleMaxWidth = isMobile ? "240px" : "min(60vw,580px)";
+  const bubblePadding = isMobile ? "p-2.5" : "p-3 sm:p-5";
+  const textSize = isMobile ? "text-xs" : "text-sm sm:text-base";
 
   const accentColor = theme === "farm" ? "#ffd700" : "#78b6d8";
   const bubbleBorder = theme === "farm" ? "border-[#ffd700]" : "border-[#7ba6cf]";
   const bubbleBg = theme === "farm" ? "bg-[rgba(255,255,240,0.98)]" : "bg-[rgba(233,245,255,0.9)]";
   const bubbleText = theme === "farm" ? "text-[#4a3728]" : "text-[#2a4c78]";
-  const bubbleTitle = theme === "farm" ? "text-[#8b6914]" : "text-[#39608f]";
   const badgeBg = theme === "farm" ? "bg-[#fff4d6]" : "bg-[#c7def7]";
   const badgeText = theme === "farm" ? "text-[#7a5a1f]" : "text-[#27486f]";
 
-  // Desktop: horizontal layout (avatar left, bubble right)
-  // Mobile bottom: vertical layout (bubble top, avatar bottom, centered)
   const isBottom = position === "bottom";
 
   return (
@@ -60,7 +66,7 @@ export default function AssistantNarrator({
       className={`flex ${isBottom ? "flex-col-reverse items-center gap-2" : "flex-row items-end gap-3"} ${className ?? ""}`}
     >
       {/* Avatar */}
-      <div className={`relative shrink-0 ${isBottom ? "h-20 w-20" : "h-[120px] w-[120px] sm:h-[180px] sm:w-[180px]"}`}>
+      <div className="relative shrink-0" style={{ width: `${avatarSize}px`, height: `${avatarSize}px` }}>
         <Image
           src="/assistant-avatar.png"
           alt="助手"
@@ -72,20 +78,20 @@ export default function AssistantNarrator({
       </div>
 
       {/* Bubble */}
-      <div className={`relative ${isBottom ? "w-full max-w-[calc(100vw-2rem)]" : "max-w-[min(60vw,580px)]"}`}>
+      <div className="relative" style={{ maxWidth: bubbleMaxWidth }}>
         <div
           className={`absolute ${isBottom ? "-bottom-1.5 left-1/2 -translate-x-1/2 rotate-[135deg]" : "-left-1.5 bottom-8 rotate-45"} h-3 w-3 border-l border-b ${bubbleBorder} ${bubbleBg}`}
         />
         <article
-          className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-3 sm:p-5 shadow-[0_10px_24px_rgba(10,16,28,0.2)] ${isBottom ? "text-center" : ""}`}
+          className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} ${bubblePadding} shadow-[0_10px_24px_rgba(10,16,28,0.2)] ${isBottom ? "text-center" : ""}`}
         >
           <div className={`flex flex-wrap items-center gap-2 ${isBottom ? "justify-center" : ""}`}>
-            <p className={`text-sm sm:text-base font-semibold ${bubbleText}`}>{name}</p>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold ${badgeBg} ${badgeText}`}>
+            <p className={`${textSize} font-semibold ${bubbleText}`}>{name}</p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeBg} ${badgeText}`}>
               {roleLabel(style)}
             </span>
           </div>
-          <p className={`mt-2 text-sm sm:text-base leading-6 sm:leading-7 ${bubbleText}`}>{message}</p>
+          <p className={`mt-2 ${textSize} leading-6 ${bubbleText}`}>{message}</p>
         </article>
       </div>
     </div>

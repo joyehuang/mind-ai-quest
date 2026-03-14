@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -16,7 +16,7 @@ interface StepLabelProps {
 }
 
 function labelText(label: RiceLabel) {
-  return label === "healthy" ? "健康贴纸" : "不健康贴纸";
+  return label === "healthy" ? "健康" : "不健康";
 }
 
 const SAMPLE_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"] as const;
@@ -80,28 +80,138 @@ export default function StepLabel({
   onLabel,
   className,
 }: StepLabelProps) {
-  const [hoveredSampleId, setHoveredSampleId] = useState<string | null>(null);
-  const { isMobile, windowWidth } = useMobile();
-  const previewSampleId = hoveredSampleId ?? activeSampleId;
-  const activeSample = samples.find((sample) => sample.id === previewSampleId) ?? samples[0] ?? null;
+  const { isMobile } = useMobile();
+  const activeSample = samples.find((sample) => sample.id === activeSampleId) ?? samples[0] ?? null;
+  const activeIndex = samples.findIndex((sample) => sample.id === activeSampleId);
   const labeledCount = samples.filter((sample) => labels[sample.id] !== undefined).length;
 
-  // 根据屏幕大小调整样式
-  const sidebarWidth = isMobile ? "100%" : "286px";
-  const padding = isMobile ? "p-3" : "p-4";
-  const gap = isMobile ? "gap-2" : "gap-4";
+  // 移动端紧凑布局 - 所有内容在一屏内
+  if (isMobile) {
+    return (
+      <div className={`flex flex-col ${className ?? ""}`}>
+        {/* 顶部进度条 - 紧凑 */}
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[10px] font-semibold text-[#263e67]">
+            进度 {labeledCount}/{samples.length}
+          </span>
+          <span className="text-[10px] text-[#6b7a9f]">
+            {activeIndex + 1} / {samples.length}
+          </span>
+        </div>
 
+        {/* 主卡片 - 左图右信息 */}
+        {activeSample && (
+          <div className="flex gap-2 rounded-xl border border-[#cdd8ee] bg-[#f3f7ff] p-2">
+            {/* 左侧：稻子图片 - 缩小 */}
+            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg border border-[#cdd8ee] bg-[#f9fbff]">
+              <LocalSampleImage
+                key={activeSample.id}
+                sampleId={activeSample.id}
+                alt={`${activeSample.name}高清图`}
+                sizes="112px"
+                priority
+                quality={76}
+              />
+            </div>
+
+            {/* 右侧：特征信息 + 按钮 */}
+            <div className="flex min-w-0 flex-1 flex-col justify-between">
+              {/* 顶部：名称和状态 */}
+              <div>
+                <p className="text-xs font-semibold text-[#263e67] truncate">{activeSample.name}</p>
+                <div
+                  className={`mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
+                    labels[activeSample.id] === "healthy"
+                      ? "border-[#6f9fe8] bg-[#e8f1ff] text-[#2c5ea8]"
+                      : labels[activeSample.id] === "unhealthy"
+                        ? "border-[#d5785d] bg-[#fff0eb] text-[#a64a31]"
+                        : "border-[#ccd7ec] bg-[#eef2fb] text-[#7d88a6]"
+                  }`}
+                >
+                  {labels[activeSample.id] ? labelText(labels[activeSample.id]) : "未选择"}
+                </div>
+              </div>
+
+              {/* 中部：特征 - 紧凑网格 */}
+              <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9px] leading-4 text-[#4a5c84]">
+                <span>叶子：</span>
+                <span className="truncate">{activeSample.profile.leaf}</span>
+                <span>稻秆：</span>
+                <span className="truncate">{activeSample.profile.stem}</span>
+                <span>小稻秆：</span>
+                <span className="truncate">{activeSample.profile.tiller}</span>
+                <span>虫害：</span>
+                <span className="truncate">{activeSample.profile.pest}</span>
+              </div>
+
+              {/* 底部：按钮 */}
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  className={`rounded-lg border-2 px-2 py-1.5 text-[11px] font-semibold transition-colors ${
+                    labels[activeSample.id] === "unhealthy"
+                      ? "border-[#d5785d] bg-[#fff0eb] text-[#a64a31]"
+                      : "border-[#da856d] bg-white text-[#a6472f]"
+                  }`}
+                  onClick={() => onLabel(activeSample.id, "unhealthy")}
+                >
+                  不健康
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-lg border-2 px-2 py-1.5 text-[11px] font-semibold transition-colors ${
+                    labels[activeSample.id] === "healthy"
+                      ? "border-[#6f9fe8] bg-[#edf3ff] text-[#2b4f8e]"
+                      : "border-[#78a7e8] bg-white text-[#2b4f8e]"
+                  }`}
+                  onClick={() => onLabel(activeSample.id, "healthy")}
+                >
+                  健康
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 导航点 */}
+        <div className="mt-2 flex justify-center gap-1">
+          {samples.map((sample, index) => (
+            <button
+              key={sample.id}
+              type="button"
+              className={`h-1 rounded-full transition-all ${
+                sample.id === activeSampleId
+                  ? "w-4 bg-[#6ba8ff]"
+                  : labels[sample.id]
+                    ? "w-1 bg-[#d5785d]"
+                    : "w-1 bg-[#ccd7ec]"
+              }`}
+              onClick={() => onFocusSample(sample.id)}
+            />
+          ))}
+        </div>
+
+        {/* 稻穗特征单独显示 - 如果需要完整信息 */}
+        {activeSample && (
+          <div className="mt-2 rounded-lg border border-[#cdd8ee] bg-white px-2 py-1.5">
+            <p className="text-[10px] leading-4 text-[#4a5c84]">
+              <span className="font-semibold">稻穗：</span>{activeSample.profile.panicle}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 桌面端布局（保持原样）
   return (
     <div className={`h-full min-h-0 ${className ?? ""}`}>
-      <div className={`grid h-full min-h-0 ${gap} ${isMobile ? "grid-cols-1" : "lg:grid-cols-[286px_minmax(0,1fr)]"}`}>
-        <aside className={`flex min-h-0 flex-col rounded-2xl border border-[#cfd9eb] bg-white ${padding}`}>
+      <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[286px_minmax(0,1fr)]">
+        <aside className="flex min-h-0 flex-col rounded-2xl border border-[#cfd9eb] bg-white p-4">
           <p className="text-sm font-semibold text-[#263e67]">教材篮</p>
           <p className="mt-1 text-xs text-[#5e6e94]">{FARM_METAPHOR_LABELS.answerSticker}进度 {labeledCount}/{samples.length}</p>
 
-          <div
-            className="mt-3 min-h-0 flex-1 space-y-2 overflow-auto pr-1"
-            onPointerLeave={() => setHoveredSampleId(null)}
-          >
+          <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-auto pr-1">
             {samples.map((sample) => {
               const current = labels[sample.id];
               const focused = activeSample?.id === sample.id;
@@ -114,7 +224,6 @@ export default function StepLabel({
                       ? "border-[#7fa8e6] bg-[#e9f1ff] text-[#214273]"
                       : "border-[#d3dcef] bg-[#f5f8ff] text-[#4a5c84]"
                   }`}
-                  onPointerEnter={() => setHoveredSampleId(sample.id)}
                   onClick={() => onFocusSample(sample.id)}
                 >
                   <div className="flex items-center gap-2">

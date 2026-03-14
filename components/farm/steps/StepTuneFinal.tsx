@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMobile } from "@/components/hooks/useMobile";
 import { toPercent } from "@/lib/farm/scoring";
@@ -22,7 +22,7 @@ interface StepTuneFinalProps {
 }
 
 function labelText(value: "healthy" | "unhealthy") {
-  return value === "healthy" ? "健康稻子" : "不健康稻子";
+  return value === "healthy" ? "健康" : "不健康";
 }
 
 export default function StepTuneFinal({
@@ -40,6 +40,173 @@ export default function StepTuneFinal({
   activeHint,
   onExplain,
 }: StepTuneFinalProps) {
+  const { isMobile } = useMobile();
+
+  // 移动端布局
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-[#cfd8ec] bg-white p-3">
+          <p className="text-sm font-semibold text-[#274066]">第五步：小麦参加毕业考试</p>
+          <p className="mt-1 text-xs text-[#60729b]">{FARM_METAPHOR_LABELS.textbookReaderness}：{toPercent(trainingSetQuality)}</p>
+
+          {/* 技能选择 */}
+          <div className="mt-3 space-y-2">
+            {/* 记忆药水 */}
+            <div
+              className={`rounded-xl border p-2.5 ${
+                activeHint === "augment" ? "border-[#8dbeff] bg-[#edf4ff]" : "border-[#d1dbee] bg-[#f5f8ff]"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  className="text-left text-xs font-semibold text-[#4b6492]"
+                  onClick={() => onExplain("augment")}
+                >
+                  记忆药水
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                    dataAugment
+                      ? "border-[#78a8e8] bg-[#ebf2ff] text-[#2a4f8f]"
+                      : "border-[#d3dcef] bg-white text-[#4b5f87]"
+                  }`}
+                  onClick={() => onDataAugmentChange(!dataAugment)}
+                >
+                  {dataAugment ? "已开启" : "未开启"}
+                </button>
+              </div>
+            </div>
+
+            {/* 大脑积木 */}
+            <div
+              className={`rounded-xl border p-2.5 ${
+                activeHint === "layers" ? "border-[#8dbeff] bg-[#edf4ff]" : "border-[#d1dbee] bg-[#f5f8ff]"
+              }`}
+            >
+              <button
+                type="button"
+                className="w-full text-left text-xs font-semibold text-[#4b6492]"
+                onClick={() => onExplain("layers")}
+              >
+                大脑积木：{layers} 层
+              </button>
+              <input
+                type="range"
+                min={1}
+                max={6}
+                step={1}
+                value={layers}
+                onChange={(event) => onLayersChange(Number(event.target.value))}
+                className="mt-2 w-full"
+              />
+            </div>
+
+            {/* 学习速度 */}
+            <div
+              className={`rounded-xl border p-2.5 ${
+                activeHint === "learningRate" ? "border-[#8dbeff] bg-[#edf4ff]" : "border-[#d1dbee] bg-[#f5f8ff]"
+              }`}
+            >
+              <button
+                type="button"
+                className="w-full text-left text-xs font-semibold text-[#4b6492]"
+                onClick={() => onExplain("learningRate")}
+              >
+                学习速度：{learningRate}
+              </button>
+              <input
+                type="range"
+                min={1}
+                max={9}
+                step={1}
+                value={learningRate}
+                onChange={(event) => onLearningRateChange(Number(event.target.value))}
+                className="mt-2 w-full"
+              />
+            </div>
+          </div>
+
+          {activeHint && (
+            <div className="mt-2 rounded-lg bg-[#fff6e8] p-2 text-xs text-[#835d2d]">
+              {activeHint === "augment" && "这个技能可以让小麦把同一张图翻转、放大、变色再多看几遍，记得更牢哦！"}
+              {activeHint === "layers" && "3层附近最合适，太少会想得简单，太多容易把自己绕晕。"}
+              {activeHint === "learningRate" && "5附近最合适，太慢容易学不牢，太快容易看漏答案。"}
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="mt-3 w-full rounded-xl bg-[#2d4f8d] px-4 py-2.5 text-sm font-semibold text-[#f4f8ff]"
+            onClick={onRun}
+          >
+            开始考试田毕业考
+          </button>
+        </div>
+
+        {finalResult ? (
+          <>
+            {/* 成绩卡片 */}
+            <div className="rounded-2xl border-2 border-[#e0bf84] bg-[#fff6e8] p-4">
+              <p className="text-xs text-[#835d2d]">考试田毕业考成绩</p>
+              <p className="mt-1 text-3xl font-bold text-[#9a6424]">
+                {toPercent(finalResult.score.finalAccuracy)}
+              </p>
+              <p className="mt-1 text-xs text-[#a67a3d]">
+                答对 {finalResult.thirdFieldPredictions.filter((item) => item.correct).length} / {finalResult.thirdFieldPredictions.length} 题
+              </p>
+            </div>
+
+            {/* 其他数据 */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-[#d0dbee] bg-white p-2">
+                <p className="text-[10px] text-[#66779f]">贴标签答对率</p>
+                <p className="mt-1 text-lg font-semibold text-[#294f89]">{toPercent(step2Score)}</p>
+              </div>
+              <div className="rounded-xl border border-[#d0dbee] bg-white p-2">
+                <p className="text-[10px] text-[#66779f]">检查答对率</p>
+                <p className="mt-1 text-lg font-semibold text-[#294f89]">{toPercent(step4Score)}</p>
+              </div>
+            </div>
+
+            {/* 滚动表格 */}
+            <div className="-mx-3 overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white">
+              <div className="min-w-[500px] p-2">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-[#dee5f3] text-[#596d97]">
+                      <th className="px-2 py-2">样本</th>
+                      <th className="px-2 py-2">真实</th>
+                      <th className="px-2 py-2">猜测</th>
+                      <th className="px-2 py-2">结果</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finalResult.thirdFieldPredictions.map((item) => (
+                      <tr key={item.sample.id} className="border-b border-[#edf2fa] text-[#394b73]">
+                        <td className="px-2 py-2">{item.sample.name}</td>
+                        <td className="px-2 py-2">{labelText(item.sample.groundTruth)}</td>
+                        <td className="px-2 py-2">{labelText(item.predicted)}</td>
+                        <td className="px-2 py-2">{item.correct ? "✓" : "✗"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="rounded-xl border border-[#d1dbee] bg-white px-3 py-3 text-sm text-[#556995]">
+            选择技能后，点击按钮开始考试。
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // 桌面端布局
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#cfd8ec] bg-white p-4">
@@ -166,27 +333,29 @@ export default function StepTuneFinal({
             你给小麦选的技能，会影响它在新稻田里会不会更稳。毕业考答对率越高，说明小麦越会把学到的办法带去新地方使用。
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white p-3">
-            <table className="w-full min-w-[620px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#dee5f3] text-[#596d97]">
-                  <th className="px-2 py-2">样本</th>
-                  <th className="px-2 py-2">真正情况</th>
-                  <th className="px-2 py-2">小麦的猜测</th>
-                  <th className="px-2 py-2">这题结果</th>
-                </tr>
-              </thead>
-              <tbody>
-                {finalResult.thirdFieldPredictions.map((item) => (
-                  <tr key={item.sample.id} className="border-b border-[#edf2fa] text-[#394b73]">
-                    <td className="px-2 py-2">{item.sample.name}</td>
-                    <td className="px-2 py-2">{labelText(item.sample.groundTruth)}</td>
-                    <td className="px-2 py-2">{labelText(item.predicted)}</td>
-                    <td className="px-2 py-2">{item.correct ? "答对了" : "答错了"}</td>
+          <div className="-mx-3 overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white">
+            <div className="min-w-[620px] p-3">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[#dee5f3] text-[#596d97]">
+                    <th className="px-2 py-2">样本</th>
+                    <th className="px-2 py-2">真正情况</th>
+                    <th className="px-2 py-2">小麦的猜测</th>
+                    <th className="px-2 py-2">这题结果</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {finalResult.thirdFieldPredictions.map((item) => (
+                    <tr key={item.sample.id} className="border-b border-[#edf2fa] text-[#394b73]">
+                      <td className="px-2 py-2">{item.sample.name}</td>
+                      <td className="px-2 py-2">{labelText(item.sample.groundTruth)}</td>
+                      <td className="px-2 py-2">{labelText(item.predicted)}</td>
+                      <td className="px-2 py-2">{item.correct ? "答对了" : "答错了"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       ) : (

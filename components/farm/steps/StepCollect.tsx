@@ -31,7 +31,7 @@ export default function StepCollect({
   const gap = isMobile ? "gap-2" : "gap-4";
 
   return (
-    <div className={`space-y-${gap.replace('gap-', '')}`}>
+    <div className={isMobile ? "space-y-2" : "space-y-4"}>
       <div className={`rounded-2xl border border-[#b8c8e6] bg-[#edf2ff] ${padding}`}>
         <p className="text-sm font-medium text-[#24385d]">第一步：在练习田收集教材</p>
         <p className="mt-1 text-lg font-semibold text-[#1f3358]">

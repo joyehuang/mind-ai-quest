@@ -387,14 +387,65 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
   }
 
   function renderWorkbenchStage(title: string, children: ReactNode, contentClassName = "min-h-0 flex-1 overflow-auto") {
-    // 根据屏幕大小调整内边距
-    const contentPadding = isMobile ? "p-2" : "p-3 sm:p-4";
-    const headerPadding = isMobile ? "px-2 py-2" : "px-3 py-2.5 sm:px-4";
-    
+    // 移动端：全屏模态，稻田可见；桌面端：悬浮窗口
+    if (isMobile) {
+      return (
+        <div className="pointer-events-auto absolute inset-0 z-40 flex flex-col bg-[#1a202c]/95 backdrop-blur-sm">
+          {/* 顶部标题栏 */}
+          <div className="flex shrink-0 items-center gap-2 border-b border-white/10 bg-[rgba(30,41,59,0.98)] px-3 py-2">
+            <span className="rounded-full bg-[#6ba8ff] px-2 py-0.5 text-[10px] font-semibold text-white">
+              {step + 1}/{FARM_STEPS.length}
+            </span>
+            <p className="text-xs text-white/90">{title}</p>
+          </div>
+
+          {/* 助手气泡 - 紧跟标题栏下方 */}
+          {assistantMessage && (
+            <div className="shrink-0 border-b border-white/10 bg-[rgba(30,41,59,0.98)] px-3 py-2">
+              <AssistantNarrator
+                name={playerName}
+                style={playerStyle}
+                message={assistantMessage}
+                theme="farm"
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {/* 内容区域 - 可滚动 */}
+          <div className="min-h-0 flex-1 overflow-auto p-3">
+            <div className="mx-auto max-w-sm rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.98)] p-3">
+              {children}
+            </div>
+          </div>
+
+          {/* 底部按钮栏 */}
+          <div className="flex shrink-0 gap-2 border-t border-white/10 bg-[rgba(30,41,59,0.98)] p-3">
+            <button
+              type="button"
+              className="flex-1 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white"
+              onClick={previousStep}
+            >
+              上一步
+            </button>
+            <button
+              type="button"
+              className="flex-1 rounded-full bg-[#f0c27a] px-4 py-2 text-xs font-semibold text-[#2f230f] disabled:bg-[#5f6578] disabled:text-[#a6aec4]"
+              disabled={!canNext}
+              onClick={nextStep}
+            >
+              {step === FARM_STEPS.length - 1 ? "完成" : "下一步"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 桌面端布局
     return (
-      <div className={`pointer-events-auto absolute inset-x-0 bottom-3 ${isMobile ? "top-[100px] px-1" : "top-[138px] sm:top-[142px] px-3 sm:px-6"} z-30 flex justify-center`}>
-        <div className={`flex h-full w-full ${isMobile ? "max-w-[95vw]" : "max-w-[1180px]"} flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md`}>
-          <div className={`flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] ${headerPadding}`}>
+      <div className="pointer-events-auto absolute inset-x-0 bottom-3 top-[138px] sm:top-[142px] z-30 flex justify-center px-3 sm:px-6">
+        <div className="flex h-full w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[#b8ccef] bg-[rgba(245,248,255,0.97)] shadow-[0_20px_40px_rgba(8,16,34,0.36)] backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-2 border-b border-[#d1def4] bg-[rgba(236,243,255,0.86)] px-3 py-2.5 sm:px-4">
             <span className="rounded-full bg-[#d9e8ff] px-2.5 py-1 text-[11px] font-semibold text-[#345b92]">
               {step + 1}/{FARM_STEPS.length}
             </span>
@@ -419,12 +470,12 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           </div>
 
           {assistantMessage && (
-            <div className={`border-b border-[#dbe5f5] bg-[linear-gradient(180deg,rgba(255,249,238,0.96),rgba(245,248,255,0.92))] ${isMobile ? "px-2 py-2" : "px-3 py-3 sm:px-4"}`}>
-              {renderAssistantBubble(isMobile ? "max-w-[95vw]" : "max-w-[760px]")}
+            <div className="border-b border-[#dbe5f5] bg-[linear-gradient(180deg,rgba(255,249,238,0.96),rgba(245,248,255,0.92))] px-3 py-3 sm:px-4">
+              {renderAssistantBubble("max-w-[760px]")}
             </div>
           )}
 
-          <div className={`${contentClassName} ${contentPadding}`}>{children}</div>
+          <div className={`${contentClassName} p-3 sm:p-4`}>{children}</div>
         </div>
       </div>
     );
@@ -457,40 +508,66 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(168,142,91,0.2),rgba(7,11,9,0.74)_76%)]" />
 
       <div className="pointer-events-none absolute inset-0 z-20">
-        <div
-          className={`pointer-events-auto absolute left-3 top-3 origin-top-left rounded-2xl border border-[#ffd700] bg-[rgba(255,255,240,0.98)] text-[#4a3728] backdrop-blur-md ${
-            isMobile
-              ? "w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] px-4 py-3"
-              : "w-[min(86vw,340px)] scale-[1.2] px-3 py-2"
-          }`}
-        >
-          <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b6914]">Farm Quest</p>
-          <p className={`font-display mt-1 ${isMobile ? "text-[1.1rem] leading-8" : "text-base"}`}>主题关卡1：保护我们的稻田</p>
-          <p className={`mt-1 text-[#7a5a1f] ${isMobile ? "text-xs leading-6" : "text-[11px]"}`}>
-            第 {step + 1} 步 / 共 {FARM_STEPS.length} 步 · {FARM_STEPS[step]}
-          </p>
-          <p className={`mt-1 text-[#7a5a1f] ${isMobile ? "text-xs leading-6" : "text-[11px]"}`}>
-            {playerName}（{playerStyle}）
-          </p>
-          {step === 0 && (
-            <>
-              <div className="mt-2 overflow-hidden rounded-full bg-[rgba(255,215,0,0.2)]">
-                <div
-                  className="h-1.5 rounded-full bg-gradient-to-r from-[#ffd700] to-[#ffed4e]"
-                  style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
-                />
+        {/* 移动端：顶部简洁信息条 */}
+        {isMobile ? (
+          <div className="pointer-events-auto absolute left-2 right-2 top-2 rounded-xl border border-[#ffd700]/60 bg-[rgba(255,255,240,0.95)] px-3 py-2 text-[#4a3728] backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] uppercase tracking-wider text-[#8b6914]">保护稻田</p>
+                <p className="text-xs font-semibold text-[#5a4a2a]">第 {step + 1}/{FARM_STEPS.length} · {FARM_STEPS[step]}</p>
               </div>
-              <p className={`mt-1 text-[#7a5a1f] ${isMobile ? "text-xs leading-6" : "text-[11px]"}`}>
-                教材进度：{collectedIds.length}/{TRAINING_TARGET}
-              </p>
-              {collectMessage && <p className={`mt-1 text-[#8b6914] ${isMobile ? "text-[11px] leading-5" : "text-[10px]"}`}>{collectMessage}</p>}
-            </>
-          )}
-        </div>
+              {step === 0 && (
+                <div className="ml-2 flex shrink-0 items-center gap-1">
+                  <div className="h-6 w-16 overflow-hidden rounded-full bg-[rgba(255,215,0,0.3)]">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#ffd700] to-[#ffed4e]"
+                      style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-[#7a5a1f]">{collectedIds.length}/{TRAINING_TARGET}</span>
+                </div>
+              )}
+            </div>
+            {collectMessage && (
+              <p className="mt-1 text-[10px] text-[#8b6914]">{collectMessage}</p>
+            )}
+          </div>
+        ) : (
+          <div
+            className="pointer-events-auto absolute left-3 top-3 origin-top-left rounded-2xl border border-[#ffd700] bg-[rgba(255,255,240,0.98)] text-[#4a3728] backdrop-blur-md w-[min(86vw,340px)] scale-[1.2] px-3 py-2"
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b6914]">Farm Quest</p>
+            <p className="font-display mt-1 text-base">主题关卡1：保护我们的稻田</p>
+            <p className="mt-1 text-[#7a5a1f] text-[11px]">
+              第 {step + 1} 步 / 共 {FARM_STEPS.length} 步 · {FARM_STEPS[step]}
+            </p>
+            <p className="mt-1 text-[#7a5a1f] text-[11px]">
+              {playerName}（{playerStyle}）
+            </p>
+            {step === 0 && (
+              <>
+                <div className="mt-2 overflow-hidden rounded-full bg-[rgba(255,215,0,0.2)]">
+                  <div
+                    className="h-1.5 rounded-full bg-gradient-to-r from-[#ffd700] to-[#ffed4e]"
+                    style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-[#7a5a1f] text-[11px]">
+                  教材进度：{collectedIds.length}/{TRAINING_TARGET}
+                </p>
+                {collectMessage && <p className="mt-1 text-[#8b6914] text-[10px]">{collectMessage}</p>}
+              </>
+            )}
+          </div>
+        )}
 
         {!isCenterWorkbenchStep && (
-          <div className="pointer-events-auto fixed bottom-20 left-3 right-3 z-30 sm:absolute sm:bottom-auto sm:left-3 sm:right-[292px] sm:top-[240px] sm:z-auto md:right-auto animate-[slideUp_0.5s_ease-out]">
-            {renderAssistantBubble("w-full sm:w-[min(50vw,500px)]")}
+          <div className={`pointer-events-auto z-30 animate-[slideUp_0.5s_ease-out] ${
+            isMobile
+              ? "absolute bottom-16 left-2 right-2"
+              : "absolute bottom-auto left-3 right-[292px] top-[240px] md:right-auto"
+          }`}>
+            {renderAssistantBubble(isMobile ? "w-full" : "w-[min(50vw,500px)]")}
           </div>
         )}
 
@@ -579,21 +656,21 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
 
       {!isCenterWorkbenchStep && (
         <div className="pointer-events-auto absolute bottom-3 left-3 right-3 z-30 sm:hidden">
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.84)] p-2 backdrop-blur">
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-[#4b5d86]/80 bg-[rgba(11,17,34,0.88)] p-2 backdrop-blur">
             <button
               type="button"
-              className="rounded-full bg-[rgba(255,255,255,0.16)] px-4 py-2 text-xs text-[#d8e4ff]"
+              className="rounded-full bg-[rgba(255,255,255,0.16)] px-3 py-2 text-[11px] text-[#d8e4ff]"
               onClick={previousStep}
             >
-              {step === 0 ? "返回首页" : "上一步"}
+              {step === 0 ? "返回" : "上一步"}
             </button>
             <button
               type="button"
-              className="rounded-full bg-[#f0c27a] px-4 py-2 text-xs font-semibold text-[#2f230f] disabled:bg-[#5f6578] disabled:text-[#a6aec4]"
+              className="rounded-full bg-[#f0c27a] px-3 py-2 text-[11px] font-semibold text-[#2f230f] disabled:bg-[#5f6578] disabled:text-[#a6aec4]"
               disabled={!canNext}
               onClick={nextStep}
             >
-              {step === FARM_STEPS.length - 1 ? "完成关卡，查看彩蛋" : "下一步"}
+              {step === FARM_STEPS.length - 1 ? "完成" : "下一步"}
             </button>
           </div>
         </div>
