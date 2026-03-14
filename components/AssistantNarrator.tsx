@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import { useMobile } from "./hooks/useMobile";
 
 type NarratorTheme = "farm" | "wenshuge";
 type Position = "left" | "bottom";
@@ -42,17 +41,7 @@ export default function AssistantNarrator({
   position = "left",
   className,
 }: AssistantNarratorProps) {
-  const { isMobile, windowWidth } = useMobile();
   const seed = useMemo(() => hashText(`${name}-${style}`), [name, style]);
-
-  // 根据屏幕大小调整样式
-  const avatarSize = isMobile ? 64 : windowWidth < 640 ? 100 : 140;
-  const avatarSizeSm = isMobile ? "64px" : windowWidth < 640 ? "100px" : "140px";
-  const bubbleMaxWidth = isMobile ? "calc(100vw - 2rem)" : "min(60vw,580px)";
-  const padding = isMobile ? "p-3" : "p-5";
-  const textSize = isMobile ? "text-sm" : "text-base";
-  const titleSize = isMobile ? "text-[10px]" : "text-[11px]";
-  const leading = isMobile ? "leading-6" : "leading-7";
 
   const accentColor = theme === "farm" ? "#ffd700" : "#78b6d8";
   const bubbleBorder = theme === "farm" ? "border-[#ffd700]" : "border-[#7ba6cf]";
@@ -71,45 +60,32 @@ export default function AssistantNarrator({
       className={`flex ${isBottom ? "flex-col-reverse items-center gap-2" : "flex-row items-end gap-3"} ${className ?? ""}`}
     >
       {/* Avatar */}
-      <div 
-        className={`relative shrink-0`}
-        style={{ height: `${avatarSize}px`, width: `${avatarSize}px` }}
-      >
-        <div
-          className="absolute inset-0 rounded-full border border-[rgba(255,255,255,0.28)] shadow-[0_8px_20px_rgba(8,12,24,0.35)] overflow-hidden"
-          style={{
-            background: `linear-gradient(160deg, ${accentColor}, ${accentColor}40)`,
-          }}
-        >
-          <Image
-            src="https://bear-public.tos-cn-shanghai.volces.com/avatar.webp"
-            alt="AI Assistant"
-            fill
-            className="object-cover"
-            sizes={avatarSizeSm}
-          />
-        </div>
+      <div className={`relative shrink-0 ${isBottom ? "h-20 w-20" : "h-[120px] w-[120px] sm:h-[180px] sm:w-[180px]"}`}>
+        <Image
+          src="/assistant-avatar.png"
+          alt="助手"
+          width={2048}
+          height={2048}
+          className="h-full w-full object-contain"
+          priority
+        />
       </div>
 
       {/* Bubble */}
-      <div 
-        className={`relative`}
-        style={{ maxWidth: bubbleMaxWidth }}
-      >
+      <div className={`relative ${isBottom ? "w-full max-w-[calc(100vw-2rem)]" : "max-w-[min(60vw,580px)]"}`}>
         <div
           className={`absolute ${isBottom ? "-bottom-1.5 left-1/2 -translate-x-1/2 rotate-[135deg]" : "-left-1.5 bottom-8 rotate-45"} h-3 w-3 border-l border-b ${bubbleBorder} ${bubbleBg}`}
         />
         <article
-          className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} ${padding} shadow-[0_10px_24px_rgba(10,16,28,0.2)] ${isBottom ? "text-center" : ""}`}
+          className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-3 sm:p-5 shadow-[0_10px_24px_rgba(10,16,28,0.2)] ${isBottom ? "text-center" : ""}`}
         >
-          <p className={`${titleSize} uppercase tracking-[0.18em] ${bubbleTitle}`}>AI Narrator</p>
-          <div className={`mt-1 flex flex-wrap items-center gap-2 ${isBottom ? "justify-center" : ""}`}>
-            <p className={`${textSize} font-semibold ${bubbleText}`}>{name}</p>
+          <div className={`flex flex-wrap items-center gap-2 ${isBottom ? "justify-center" : ""}`}>
+            <p className={`text-sm sm:text-base font-semibold ${bubbleText}`}>{name}</p>
             <span className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold ${badgeBg} ${badgeText}`}>
               {roleLabel(style)}
             </span>
           </div>
-          <p className={`mt-2 ${textSize} ${leading} ${bubbleText}`}>{message}</p>
+          <p className={`mt-2 text-sm sm:text-base leading-6 sm:leading-7 ${bubbleText}`}>{message}</p>
         </article>
       </div>
     </div>
