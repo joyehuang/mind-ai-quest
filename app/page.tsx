@@ -11,6 +11,7 @@ import {
   type FarmCertificateSnapshot,
 } from "@/lib/farm/terminology";
 import { preloadWheatModel } from "@/lib/farm/wheat-model";
+import { useOrientation } from "@/components/hooks";
 
 type Scene =
   | "landing"
@@ -106,7 +107,9 @@ export default function Home() {
   const progressPercent = (completedCount / 2) * 100;
   const teacherBaseName = normalizeTeacherBase(name);
   const teacherName = teacherBaseName ? `${teacherBaseName}老师` : "";
-  const homeVideoSources = ["https://bear-public.tos-cn-shanghai.volces.com/homepage.mp4"];
+  const homeVideoSources = ["/homepage.mp4"];
+  // 根据屏幕方向选择不同的资源
+  const { isPortrait } = useOrientation();
 
   useEffect(() => {
     return () => {
@@ -241,7 +244,7 @@ export default function Home() {
               className="rounded-xl border border-[#9eb2d2] bg-[rgba(255,255,255,0.82)] px-4 py-2 text-sm text-[#36527f]"
               onClick={() => setScene("select")}
             >
-              返回首页
+              返回关卡选择
             </button>
             <button
               type="button"
@@ -261,7 +264,7 @@ export default function Home() {
       <FarmKnowledgeReveal
         playerName={teacherName}
         certificate={readFarmCertificate()}
-        returnLabel="返回首页"
+        returnLabel={farmEntryOrigin === "landing" ? "返回首页" : "返回游戏主页"}
         onSeen={markFarmKnowledgeSeen}
         onBack={() => setScene(farmEntryOrigin)}
       />
@@ -318,7 +321,7 @@ export default function Home() {
           preload="auto"
           onEnded={handleFinishOnboarding}
         >
-          <source src="https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" type="video/mp4" />
+          <source src={isPortrait === null ? "https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" : (isPortrait ? "https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" : "https://bear-public.tos-cn-shanghai.volces.com/onboard-video-landscape.mp4")} type="video/mp4" />
         </video>
 
         <button
@@ -336,57 +339,81 @@ export default function Home() {
         </div>
 
         {isTeacherPromptOpen ? (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(32,16,6,0.42)] px-4 backdrop-blur-md">
-            <div className="w-full max-w-md rounded-[28px] border border-[#f6ddb2] bg-[linear-gradient(180deg,rgba(255,249,237,0.98)_0%,rgba(255,241,212,0.96)_100%)] p-6 text-[#573111] shadow-[0_26px_70px_rgba(58,25,5,0.24)]">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9c6630]">Name Card</p>
-                  <h2 className="font-display mt-2 text-3xl text-[#5b340f]">给自己起个名字</h2>
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(255,235,150,0.4)] px-4 backdrop-blur-md">
+            <div className="relative font-handwritten w-full max-w-md">
+              {/* 简洁的星星装饰 */}
+              <div className="absolute -top-6 left-8 text-2xl animate-bounce">⭐</div>
+              <div className="absolute -top-4 right-12 text-xl animate-bounce" style={{animationDelay: '0.3s'}}>✨</div>
+              <div className="absolute -bottom-4 left-12 text-xl animate-bounce" style={{animationDelay: '0.6s'}}>🌟</div>
+              <div className="absolute -bottom-6 right-8 text-2xl animate-bounce" style={{animationDelay: '0.9s'}}>💫</div>
+
+              {/* 主卡片 */}
+              <div className="relative rounded-[32px] border-[3px] border-[#FFE5A0] bg-[linear-gradient(180deg,#FFFEF8_0%,#FFFEF0_50%,#FFFAE8_100%)] p-8 text-[#5D4E37] shadow-[0_16px_48px_rgba(255,229,160,0.4),0_0_0_1px_rgba(255,255,255,0.9)]">
+                {/* 内部装饰边框 */}
+                <div className="absolute inset-4 rounded-[24px] border border-dashed border-[#FFECB3] pointer-events-none opacity-70" />
+
+                {/* 标题区 */}
+                <div className="relative flex items-start justify-between gap-4 mb-6">
+                  <div className="flex-1">
+                    <h2 className="font-handwritten text-3xl font-bold text-[#C9A000] leading-tight">
+                      给自己起个名字
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    className="rounded-2xl border-2 border-[#FFECB3] bg-white px-4 py-2 text-sm font-bold text-[#E6B800] shadow-[0_2px_8px_rgba(230,184,0,0.15)] transition hover:shadow-[0_4px_12px_rgba(230,184,0,0.25)] hover:bg-[#FFFEF8]"
+                    onClick={handleReturnToLanding}
+                  >
+                    ✕ 关闭
+                  </button>
                 </div>
+
+                {/* 说明文字 */}
+                <div className="relative mb-6 rounded-2xl border border-[#FFECB3] bg-gradient-to-r from-[#FFFEF8] to-[#FFFEF0] p-4 shadow-sm">
+                  <p className="text-sm leading-relaxed text-[#5D4E37]">
+                    你就是小麦的老师。确认后，AI 小当家和小麦都会用 <span className="inline-block px-2 py-0.5 mx-1 bg-gradient-to-r from-[#FFD966] to-[#FFC800] rounded-lg text-white font-bold text-xs shadow-sm">XXX老师</span> 来称呼你。
+                  </p>
+                </div>
+
+                {/* 输入框区域 */}
+                <label className="relative block mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">✏️</span>
+                    <span className="text-sm font-bold text-[#C9A000]">你的名字</span>
+                  </div>
+
+                  {/* 输入框容器 */}
+                  <div className="flex items-center rounded-2xl border-2 border-[#FFE5A0] bg-white shadow-[0_4px_12px_rgba(255,229,160,0.25)] overflow-hidden transition-all focus-within:shadow-[0_6px_20px_rgba(255,229,160,0.35),0_0_0_3px_#FFE5A0] focus-within:border-[#FFD966]">
+                    <input
+                      autoFocus
+                      className="h-12 flex-1 bg-transparent px-4 text-base text-[#5D4E37] font-bold outline-none placeholder:text-[#E6B800] placeholder:font-normal"
+                      value={teacherBaseName}
+                      onChange={(event) => setName(normalizeTeacherBase(event.target.value))}
+                      maxLength={12}
+                      placeholder="例如：小麦、阿谷、云朵"
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          handleConfirmTeacherName();
+                        }
+                      }}
+                    />
+                    <span className="mr-2 flex items-center px-4 py-2 bg-gradient-to-r from-[#FFD966] to-[#FFC800] rounded-xl text-sm font-bold text-white shadow-md">
+                      老师
+                    </span>
+                  </div>
+                </label>
+
+                {/* 确认按钮 */}
                 <button
                   type="button"
-                  className="rounded-full border border-[#e7c88c] px-3 py-1 text-sm text-[#8a5c29] transition hover:bg-white/55"
-                  onClick={handleReturnToLanding}
+                  className="relative w-full min-h-12 rounded-2xl border-b-[5px] border-[#D4A800] bg-gradient-to-br from-[#FFD966] via-[#FFC800] to-[#E6B800] px-6 text-base font-bold text-white shadow-[0_8px_20px_rgba(201,168,0,0.35)] transition-all hover:shadow-[0_12px_28px_rgba(201,168,0,0.45)] hover:-translate-y-0.5 active:shadow-[0_2px_8px_rgba(201,168,0,0.25)] active:translate-y-0.5 active:border-b-[2px] disabled:from-[#FFE5A0] disabled:to-[#E6B800] disabled:border-b-[5px] disabled:border-[#C9A000] disabled:shadow-none disabled:translate-y-0 disabled:text-[#B89C00]"
+                  disabled={!teacherBaseName}
+                  onClick={handleConfirmTeacherName}
                 >
-                  关闭
+                  确认成为{teacherName || "XXX老师"}
                 </button>
               </div>
-
-              <p className="mt-3 text-sm leading-7 text-[#7a4a19]">
-                你就是小麦的老师。确认后，AI 小当家和小麦都会用 <span className="font-semibold text-[#5f3206]">XXX老师</span> 来称呼你。
-              </p>
-
-              <label className="mt-5 block text-sm font-semibold text-[#7a4a19]">
-                你的名字
-                <div className="mt-2 flex items-center overflow-hidden rounded-2xl border-2 border-[#e9cb91] bg-white/82 shadow-inner">
-                  <input
-                    autoFocus
-                    className="teacher-name-input h-13 min-w-0 flex-1 bg-transparent px-4 text-base text-[#3f260e] outline-none placeholder:text-[#b18659]"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    maxLength={12}
-                    placeholder="例如：小麦、阿谷、云朵"
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        handleConfirmTeacherName();
-                      }
-                    }}
-                  />
-                  <span className="mr-2 rounded-full border border-[#e7c88c] bg-[#fff4df] px-4 py-2 text-sm font-semibold text-[#8a5c29]">
-                    老师
-                  </span>
-                </div>
-              </label>
-
-              <button
-                type="button"
-                className="mt-5 min-h-13 w-full rounded-2xl bg-[linear-gradient(135deg,#ffcb69_0%,#ea8c27_100%)] px-5 text-base font-bold text-[#432208] shadow-[0_16px_30px_rgba(110,55,12,0.28)] transition hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#d4c0a0] disabled:text-[#7c6751]"
-                disabled={!teacherBaseName}
-                onClick={handleConfirmTeacherName}
-              >
-                确认成为{teacherName || "XXX老师"}
-              </button>
             </div>
           </div>
         ) : null}
@@ -398,7 +425,7 @@ export default function Home() {
     return (
       <div className="relative h-screen w-screen overflow-hidden">
         <Image
-          src="https://bear-public.tos-cn-shanghai.volces.com/bg-img-v2.webp"
+          src={isPortrait === null ? "/bg-img-v2.webp" : (isPortrait ? "/bg-img-v2.webp" : "https://bear-public.tos-cn-shanghai.volces.com/landing-background-landscape.png")}
           alt="AI小当家开场背景"
           fill
           priority
@@ -409,7 +436,9 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,245,222,0.58)_0%,rgba(255,245,222,0)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(26,11,2,0)_0%,rgba(26,11,2,0.12)_30%,rgba(26,11,2,0.48)_100%)]" />
 
-        <div className="absolute left-1/2 top-[24%] z-10 w-[58%] max-w-[272px] -translate-x-1/2">
+        <div className={`absolute left-1/2 top-0 z-10 -translate-x-1/2 ${
+                isPortrait === null ? "w-[58%] max-w-[272px]" : (isPortrait ? "w-[58%] max-w-[272px]" : "w-[75%] max-w-[354px]")
+              }`}>
           <div
             className={
               isLogoExiting
@@ -423,13 +452,15 @@ export default function Home() {
               width={860}
               height={360}
               priority
-              className="h-auto w-full drop-shadow-[0_22px_26px_rgba(86,46,15,0.3)]"
+              className={`h-auto drop-shadow-[0_22px_26px_rgba(86,46,15,0.3)] ${
+                isPortrait === null ? "w-full" : (isPortrait ? "w-full" : "w-[130%]")
+              }`}
             />
           </div>
         </div>
 
         <div
-          className={`absolute inset-x-6 top-[56%] z-10 flex flex-col items-center text-center transition-all duration-300 sm:inset-x-8 ${
+          className={`absolute inset-x-6 isPortrait === null ? "top-[52%]" : (isPortrait ? "top-[52%]" : "top-[68%]") z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
             isLogoExiting
               ? "translate-y-5 opacity-0"
               : "animate-[landing-cta-rise_0.9s_ease_0.48s_both]"
@@ -437,20 +468,23 @@ export default function Home() {
         >
           <button
             type="button"
-            className="mt-5 min-h-14 min-w-[11.5rem] rounded-full border border-[#ffefc8] bg-[linear-gradient(135deg,#ffe39d_0%,#ffb94a_100%)] px-8 text-lg font-bold text-[#4d2809] shadow-[0_18px_36px_rgba(108,55,15,0.28)] transition hover:scale-[1.02] active:scale-[0.98]"
+            className="-mt-4 transition-transform hover:scale-[1.02] active:scale-[0.98]"
             onClick={handleStartOnboarding}
           >
-            开始游戏
+            <Image
+              src="/start-button.png"
+              alt="开始游戏"
+              width={2352}
+              height={1568}
+              className={`h-auto w-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)] ${
+                isPortrait === null ? "scale-[0.4]" : (isPortrait ? "scale-[0.4]" : "scale-[0.2]")
+              }`}
+              priority
+            />
           </button>
         </div>
       </div>
     );
-  }
-
-  // 关卡选择功能已关闭，直接跳转到关卡1
-  if (scene === "select") {
-    setScene("farm");
-    return null;
   }
 
   return (
@@ -474,9 +508,6 @@ export default function Home() {
 
       <div className="pointer-events-auto absolute right-4 top-4 w-[min(90vw,340px)] rounded-3xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.5)] p-4 text-[#f7efe2] backdrop-blur-md">
         <p className="text-xs uppercase tracking-[0.22em] text-[#d6c2a1]">Game Home</p>
-        <p className="mt-1 text-lg font-semibold text-[#faf2e6]">
-          {teacherName || "小老师"} <span className="text-sm font-medium text-[#d9c8af]">· {style}</span>
-        </p>
 
         <div className="mt-3">
           <div className="flex items-center justify-between text-[11px] text-[#d4c0a0]">
@@ -520,7 +551,7 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="pointer-events-auto absolute bottom-4 left-4 w-[min(46vw,360px)] rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
+      <div className="pointer-events-auto absolute bottom-4 left-4 w-[min(40vw,300px)] scale-75 origin-bottom-left rounded-2xl border border-[rgba(255,255,255,0.14)] bg-[rgba(33,26,16,0.58)] p-4 text-left text-[#f5ebd8] backdrop-blur-md shadow-[0_14px_24px_rgba(52,39,22,0.4)]">
         <p className="text-xs text-[#e0cda8]">基础任务</p>
         <p className="mt-1 font-display text-2xl">关卡1：保护稻田</p>
         <p className="mt-1 text-xs text-[#e9dcc3]">
