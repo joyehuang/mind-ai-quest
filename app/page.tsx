@@ -106,7 +106,7 @@ export default function Home() {
   const progressPercent = (completedCount / 2) * 100;
   const teacherBaseName = normalizeTeacherBase(name);
   const teacherName = teacherBaseName ? `${teacherBaseName}老师` : "";
-  const homeVideoSources = ["/homepage.mp4"];
+  const homeVideoSources = ["https://bear-public.tos-cn-shanghai.volces.com/homepage.mp4"];
 
   useEffect(() => {
     return () => {
@@ -398,7 +398,7 @@ export default function Home() {
     return (
       <div className="relative h-screen w-screen overflow-hidden">
         <Image
-          src="/bg-img-v2.webp"
+          src="https://bear-public.tos-cn-shanghai.volces.com/bg-img-v2.webp"
           alt="AI小当家开场背景"
           fill
           priority

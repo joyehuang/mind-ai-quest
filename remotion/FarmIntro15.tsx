@@ -76,7 +76,7 @@ const Scene1Harvest = () => {
     <AbsoluteFill style={{ background: THEMES.gold.bg }}>
       {/* 背景图 */}
       <Img
-        src={staticFile("/images_game-bg.png")}
+        src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp")}
         style={{
           position: "absolute",
           inset: 0,
@@ -155,7 +155,7 @@ const Scene2Intrusion = () => {
     <AbsoluteFill style={{ background: THEMES.alert.bg }}>
       {/* 背景变暗 */}
       <Img
-        src={staticFile("/images_game-bg.png")}
+        src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp")}
         style={{
           position: "absolute",
           inset: 0,
@@ -186,7 +186,7 @@ const Scene2Intrusion = () => {
           transform: `translateX(-50%)`,
         }}
       >
-        <Img src={staticFile("/images_a6.png")} style={{ width: 200, height: 200 }} />
+        <Img src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/images_a6.png")} style={{ width: 200, height: 200 }} />
       </div>
       <div
         style={{
@@ -196,7 +196,7 @@ const Scene2Intrusion = () => {
           transform: `translateX(50%)`,
         }}
       >
-        <Img src={staticFile("/images_a11.png")} style={{ width: 180, height: 180 }} />
+        <Img src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/images_a11.png")} style={{ width: 180, height: 180 }} />
       </div>
 
       {/* 警告文字 */}
@@ -250,7 +250,7 @@ const Scene3Help = () => {
     <AbsoluteFill style={{ background: THEMES.plea.bg }}>
       {/* 背景图 */}
       <Img
-        src={staticFile("/images_a3.png")}
+        src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/images_a3.png")}
         style={{
           position: "absolute",
           inset: 0,
@@ -334,7 +334,7 @@ const Scene4Hero = () => {
     <AbsoluteFill style={{ background: THEMES.hero.bg }}>
       {/* 背景图 */}
       <Img
-        src={staticFile("/images_a10.png")}
+        src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/images_a10.png")}
         style={{
           position: "absolute",
           inset: 0,
@@ -424,7 +424,7 @@ const Scene5Gameplay = () => {
     <AbsoluteFill style={{ background: THEMES.growth.bg }}>
       {/* 背景图 */}
       <Img
-        src={staticFile("/images_a12.png")}
+        src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/images_a12.png")}
         style={{
           position: "absolute",
           inset: 0,
@@ -525,7 +525,7 @@ const Scene6CTA = () => {
     <AbsoluteFill style={{ background: THEMES.cta.bg }}>
       {/* 背景图 */}
       <Img
-        src={staticFile("/images_game-bg.png")}
+        src={staticFile("https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp")}
         style={{
           position: "absolute",
           inset: 0,

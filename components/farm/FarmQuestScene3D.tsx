@@ -63,15 +63,9 @@ interface WheatModel {
   height: number;
 }
 
-const WHEAT_MODEL_PATHS = ["/wheet.glb"];
+const WHEAT_MODEL_PATHS = ["https://bear-public.tos-cn-shanghai.volces.com/wheet.glb"];
 const FARM_BG_IMAGE_PATHS = [
-  "/images_game-bg.png",
-  "/image-game-bg.png",
-  "/image-game-bg.jpg",
-  "/images/game-bg.png",
-  "/images/game-bg.jpg",
-  "/images/game-bg.jpeg",
-  "/images/game-bg.webp",
+  "https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp",
 ];
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {

@@ -31,7 +31,7 @@ function parseSampleIndex(sampleId: string) {
 
 function sampleImageCandidates(sampleId: string) {
   const sampleIndex = parseSampleIndex(sampleId);
-  return SAMPLE_IMAGE_EXTENSIONS.flatMap((ext) => [`/image${sampleIndex}${ext}`, `/images_a${sampleIndex}${ext}`]);
+  return [`https://bear-public.tos-cn-shanghai.volces.com/images_a${sampleIndex}.png`];
 }
 
 function LocalSampleImage({
@@ -50,7 +50,7 @@ function LocalSampleImage({
   const candidates = useMemo(() => sampleImageCandidates(sampleId), [sampleId]);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
-  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? "/image1.png";
+  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? "https://bear-public.tos-cn-shanghai.volces.com/images_a1.png";
 
   return (
     <Image
