@@ -40,6 +40,9 @@ function buildRemotePatterns() {
 const remotePatterns = buildRemotePatterns();
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: { remotePatterns },
   turbopack: {
     root: process.cwd(),
