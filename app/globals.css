@@ -27,6 +27,12 @@ body {
   letter-spacing: 0.015em;
 }
 
+.font-handwritten {
+  font-family: var(--font-handwritten), "ZCOOL KuaiLe", "站酷快乐体", cursive;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
 .farm-prologue-halftone {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.18) 1.2px, transparent 1.2px);
   background-size: 18px 18px;
