@@ -200,27 +200,6 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     finalResult,
   ]);
 
-  function resetQuest() {
-    if (hoverLeaveTimerRef.current) {
-      clearTimeout(hoverLeaveTimerRef.current);
-      hoverLeaveTimerRef.current = null;
-    }
-    setStep(0);
-    setCollectedIds([]);
-    setLabels({});
-    setActiveSampleId(FIELD_A_SAMPLES[0]?.id ?? null);
-    setHoveredSampleId(null);
-    setCollectMessage("");
-    setTrainProgress(0);
-    setFieldBReviews({});
-    setDataAugment(false);
-    setLayers(3);
-    setLearningRate(5);
-    setFinalResult(null);
-    setAssistantOverride(null);
-    setActiveTuneHint(null);
-  }
-
   function toggleCollect(sampleId: string) {
     setCollectedIds((previous) => {
       const exists = previous.includes(sampleId);
@@ -338,7 +317,6 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     setStep((current) => current + 1);
   }
 
-  const progress = ((step + 1) / FARM_STEPS.length) * 100;
   const isLabelStep = step === 1;
   const isTrainStep = step === 2;
   const isCorrectionStep = step === 3;
@@ -446,7 +424,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
         onSelectSample={handleSceneSelect}
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(168,142,91,0.2),rgba(7,11,9,0.74)_76%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(206,174,110,0.16)_0%,rgba(88,68,32,0.1)_42%,rgba(7,11,9,0.34)_100%)]" />
 
       <div className="pointer-events-none absolute inset-0 z-20">
         <div className="pointer-events-auto absolute left-3 top-3 w-[min(86vw,340px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] px-3 py-2 text-[#eaf0ff] backdrop-blur-md">
@@ -478,34 +456,6 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
           renderAssistantBubble(
             "pointer-events-auto absolute left-3 right-3 top-[194px] w-auto sm:right-[292px] sm:top-[166px] md:right-auto md:w-[min(50vw,500px)]",
           )}
-
-        <div className="pointer-events-auto absolute right-3 top-3 w-[min(64vw,220px)] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.74)] p-2 text-[#e7eeff] backdrop-blur-md sm:w-[min(70vw,240px)]">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              className="rounded-full bg-[rgba(32,50,86,0.86)] px-2.5 py-1 text-[11px] text-[#d8e6ff]"
-              onClick={() => setLiteMode((current) => !current)}
-            >
-              渲染：{liteMode ? "轻量" : "标准"}
-            </button>
-            <button
-              type="button"
-              className="rounded-full bg-[rgba(89,67,44,0.86)] px-2.5 py-1 text-[11px] text-[#ffe6c2]"
-              onClick={resetQuest}
-            >
-              重置
-            </button>
-          </div>
-          <div className="mt-2 overflow-hidden rounded-full bg-[rgba(255,255,255,0.12)]">
-            <div
-              className="h-1.5 rounded-full bg-gradient-to-r from-[#7cb6ff] to-[#f0c97d]"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p className="mt-1.5 text-[10px] text-[#aebedf]">
-            教材 {TRAINING_TARGET} 株 · 第二块田检查 {SECOND_FIELD_TARGET} 株 · 第三块田毕业考 {THIRD_FIELD_TARGET} 株
-          </p>
-        </div>
 
         {hoveredSample && !isCenterWorkbenchStep && (
           <div className="pointer-events-auto absolute right-3 top-[104px] hidden w-[280px] rounded-2xl border border-[#4b5d86] bg-[rgba(11,17,34,0.76)] px-3 py-2 text-[11px] text-[#d7e3ff] backdrop-blur md:block">
