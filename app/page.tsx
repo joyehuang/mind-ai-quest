@@ -465,10 +465,10 @@ export default function Home() {
             onClick={handleStartOnboarding}
           >
             <Image
-              src="https://maas-log-prod.cn-wlcb.ufileos.com/anthropic/6a3801e8-f1bd-43f7-9533-d789d326ac22/fc3f4ca27eb46387512a7692ddacbf99.png?UCloudPublicKey=TOKEN_e15ba47a-d098-4fbd-9afc-a0dcf0e4e621&Expires=1773484412&Signature=Xy9hskNxcE5+1pMo7gQe/FSsi8o="
+              src="/start-button.png"
               alt="开始游戏"
-              width={136}
-              height={52}
+              width={2352}
+              height={1568}
               className="h-auto w-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
               priority
             />

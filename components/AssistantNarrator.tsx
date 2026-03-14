@@ -60,21 +60,15 @@ export default function AssistantNarrator({
       className={`flex ${isBottom ? "flex-col-reverse items-center gap-2" : "flex-row items-end gap-3"} ${className ?? ""}`}
     >
       {/* Avatar */}
-      <div className={`relative shrink-0 ${isBottom ? "h-16 w-16" : "h-[100px] w-[100px] sm:h-[140px] sm:w-[140px]"}`}>
-        <div
-          className="absolute inset-0 rounded-full border border-[rgba(255,255,255,0.28)] shadow-[0_8px_20px_rgba(8,12,24,0.35)] overflow-hidden"
-          style={{
-            background: `linear-gradient(160deg, ${accentColor}, ${accentColor}40)`,
-          }}
-        >
-          <Image
-            src="https://bear-public.tos-cn-shanghai.volces.com/avatar.webp"
-            alt="AI Assistant"
-            fill
-            className="object-cover"
-            sizes={isBottom ? "64px" : "(max-width: 640px) 100px, 140px"}
-          />
-        </div>
+      <div className={`relative shrink-0 ${isBottom ? "h-20 w-20" : "h-[120px] w-[120px] sm:h-[180px] sm:w-[180px]"}`}>
+        <Image
+          src="/assistant-avatar.png"
+          alt="助手"
+          width={2048}
+          height={2048}
+          className="h-full w-full object-contain"
+          priority
+        />
       </div>
 
       {/* Bubble */}
@@ -85,8 +79,7 @@ export default function AssistantNarrator({
         <article
           className={`rounded-2xl border ${bubbleBorder} ${bubbleBg} p-3 sm:p-5 shadow-[0_10px_24px_rgba(10,16,28,0.2)] ${isBottom ? "text-center" : ""}`}
         >
-          <p className={`text-[10px] sm:text-[11px] uppercase tracking-[0.18em] ${bubbleTitle}`}>AI Narrator</p>
-          <div className={`mt-1 flex flex-wrap items-center gap-2 ${isBottom ? "justify-center" : ""}`}>
+          <div className={`flex flex-wrap items-center gap-2 ${isBottom ? "justify-center" : ""}`}>
             <p className={`text-sm sm:text-base font-semibold ${bubbleText}`}>{name}</p>
             <span className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold ${badgeBg} ${badgeText}`}>
               {roleLabel(style)}

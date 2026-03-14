@@ -65,7 +65,7 @@ interface WheatModel {
 
 const WHEAT_MODEL_PATHS = ["https://bear-public.tos-cn-shanghai.volces.com/wheet.glb"];
 const FARM_BG_IMAGE_PATHS = [
-  "https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp",
+  "/farm-background.png",
 ];
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
