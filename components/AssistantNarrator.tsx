@@ -42,14 +42,14 @@ export default function AssistantNarrator({
   const skinColor = pickBySeed(["#f7d7be", "#efc9ab", "#e8bc98", "#dbad87"], seed, 2);
   const hairColor = pickBySeed(["#2f2a27", "#4a372d", "#5a4633", "#253348"], seed, 5);
   const coatColor = pickBySeed(["#5f83c2", "#7e6eb0", "#44778d", "#7b8c56"], seed, 8);
-  const accentColor = theme === "farm" ? "#d8ae64" : "#78b6d8";
-  const bubbleBorder = theme === "farm" ? "border-[#b99661]" : "border-[#7ba6cf]";
-  const bubbleBg = theme === "farm" ? "bg-[rgba(255,246,228,0.92)]" : "bg-[rgba(233,245,255,0.9)]";
-  const bubbleText = theme === "farm" ? "text-[#624826]" : "text-[#2a4c78]";
-  const bubbleTitle = theme === "farm" ? "text-[#7b5929]" : "text-[#39608f]";
-  const tailColor = theme === "farm" ? "bg-[rgba(255,246,228,0.92)]" : "bg-[rgba(233,245,255,0.9)]";
-  const badgeBg = theme === "farm" ? "bg-[#f2dcb6]" : "bg-[#c7def7]";
-  const badgeText = theme === "farm" ? "text-[#6d4b1f]" : "text-[#27486f]";
+  const accentColor = theme === "farm" ? "#ffd700" : "#78b6d8";
+  const bubbleBorder = theme === "farm" ? "border-[#ffd700]" : "border-[#7ba6cf]";
+  const bubbleBg = theme === "farm" ? "bg-[rgba(255,255,240,0.98)]" : "bg-[rgba(233,245,255,0.9)]";
+  const bubbleText = theme === "farm" ? "text-[#4a3728]" : "text-[#2a4c78]";
+  const bubbleTitle = theme === "farm" ? "text-[#8b6914]" : "text-[#39608f]";
+  const tailColor = theme === "farm" ? "bg-[rgba(255,255,240,0.98)]" : "bg-[rgba(233,245,255,0.9)]";
+  const badgeBg = theme === "farm" ? "bg-[#fff4d6]" : "bg-[#c7def7]";
+  const badgeText = theme === "farm" ? "text-[#7a5a1f]" : "text-[#27486f]";
 
   return (
     <div className={`flex items-end gap-3 ${className ?? ""}`}>
