@@ -113,38 +113,48 @@ export default function StepLabel({
                   quality={76}
                 />
               </div>
-              {/* 当前状态标签 - 覆盖在图片底部 */}
-              <div className="absolute bottom-0 left-0 right-0 border-t border-[#d0dcee] bg-[rgba(243,247,255,0.95)] px-3 py-1.5">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-[#263e67]">{activeSample.name}</p>
-                  <div
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-                      labels[activeSample.id] === "healthy"
-                        ? "border-[#6f9fe8] bg-[#e8f1ff] text-[#2c5ea8]"
-                        : labels[activeSample.id] === "unhealthy"
-                          ? "border-[#d5785d] bg-[#fff0eb] text-[#a64a31]"
-                          : "border-[#ccd7ec] bg-[#eef2fb] text-[#7d88a6]"
-                    }`}
-                  >
-                    {labels[activeSample.id] ? labelText(labels[activeSample.id]) : "未选择"}
-                  </div>
-                </div>
+            </div>
+
+            {/* 2. 候选稻种名称 - 在图片和特征之间 */}
+            <div className="mb-2 flex items-center justify-between rounded-lg border border-[#cdd8ee] bg-white px-3 py-2">
+              <p className="text-sm font-semibold text-[#263e67]">{activeSample.name}</p>
+              <div
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                  labels[activeSample.id] === "healthy"
+                    ? "border-[#6f9fe8] bg-[#e8f1ff] text-[#2c5ea8]"
+                    : labels[activeSample.id] === "unhealthy"
+                      ? "border-[#d5785d] bg-[#fff0eb] text-[#a64a31]"
+                      : "border-[#ccd7ec] bg-[#eef2fb] text-[#7d88a6]"
+                }`}
+              >
+                {labels[activeSample.id] ? labelText(labels[activeSample.id]) : "未选择"}
               </div>
             </div>
 
-            {/* 2. 稻子特征信息 - 中间，紧凑 */}
+            {/* 3. 稻子特征信息 - 中间，紧凑 */}
             <div className="mb-2 rounded-lg border border-[#cdd8ee] bg-white p-2">
               <p className="mb-1.5 text-[10px] font-semibold text-[#3a4e77]">稻子特征</p>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px] leading-4 text-[#4a5c84]">
-                <span>叶子：</span>
-                <span className="truncate">{activeSample.profile.leaf}</span>
-                <span>稻秆：</span>
-                <span className="truncate">{activeSample.profile.stem}</span>
-                <span>小稻秆：</span>
-                <span className="truncate">{activeSample.profile.tiller}</span>
-                <span>虫害：</span>
-                <span className="truncate">{activeSample.profile.pest}</span>
-                <span className="col-span-2">稻穗：{activeSample.profile.panicle}</span>
+              <div className="space-y-1 text-[10px] leading-4 text-[#4a5c84]">
+                <div className="flex gap-3">
+                  <span className="w-12 shrink-0">叶子：</span>
+                  <span className="truncate">{activeSample.profile.leaf}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="w-12 shrink-0">稻秆：</span>
+                  <span className="truncate">{activeSample.profile.stem}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="w-12 shrink-0">小稻秆：</span>
+                  <span className="truncate">{activeSample.profile.tiller}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="w-12 shrink-0">虫害：</span>
+                  <span className="truncate">{activeSample.profile.pest}</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="w-12 shrink-0">稻穗：</span>
+                  <span className="truncate">{activeSample.profile.panicle}</span>
+                </div>
               </div>
             </div>
 
