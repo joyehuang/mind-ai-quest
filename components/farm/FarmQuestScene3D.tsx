@@ -64,7 +64,7 @@ interface WheatModel {
   height: number;
 }
 
-const WHEAT_MODEL_PATHS = ["https://bear-public.tos-cn-shanghai.volces.com/wheet.glb"];
+const WHEAT_MODEL_PATHS = ["/rice-plant.glb", "/wheet.glb"];
 const FARM_BG_IMAGE_PATHS = [
   "https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp",
 ];
