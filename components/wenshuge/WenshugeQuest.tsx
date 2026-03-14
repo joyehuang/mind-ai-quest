@@ -65,7 +65,6 @@ export default function WenshugeQuest({
   onBack,
   onComplete,
 }: WenshugeQuestProps) {
-  const { isMobile } = useMobile();
   const [step, setStep] = useState(0);
   const [selectedFeatureKeys, setSelectedFeatureKeys] =
     useState<WenshugeFeatureKey[]>(ALL_FEATURE_KEYS);
