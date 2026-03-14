@@ -29,9 +29,14 @@ function parseSampleIndex(sampleId: string) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
+const CLOUD_BASE_URL = "https://bear-public.tos-cn-shanghai.volces.com";
+
 function sampleImageCandidates(sampleId: string) {
   const sampleIndex = parseSampleIndex(sampleId);
-  return SAMPLE_IMAGE_EXTENSIONS.flatMap((ext) => [`/image${sampleIndex}${ext}`, `/images_a${sampleIndex}${ext}`]);
+  return SAMPLE_IMAGE_EXTENSIONS.flatMap((ext) => [
+    `${CLOUD_BASE_URL}/image${sampleIndex}${ext}`,
+    `${CLOUD_BASE_URL}/images_a${sampleIndex}${ext}`,
+  ]);
 }
 
 function LocalSampleImage({
@@ -50,7 +55,7 @@ function LocalSampleImage({
   const candidates = useMemo(() => sampleImageCandidates(sampleId), [sampleId]);
   const [candidateIndex, setCandidateIndex] = useState(0);
 
-  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? "/image1.png";
+  const src = candidates[Math.min(candidateIndex, candidates.length - 1)] ?? `${CLOUD_BASE_URL}/image1.png`;
 
   return (
     <Image
