@@ -74,8 +74,8 @@ export default function StepTrainTest({
             </div>
 
             {/* 滚动表格 */}
-            <div className="-mx-3 overflow-x-auto rounded-2xl border border-[#d0dbef] bg-white">
-              <div className="min-w-[400px] p-2">
+            <div className="overflow-x-auto rounded-2xl border border-[#d0dbef] bg-white overscroll-x-contain">
+              <div className="min-w-[480px] p-2">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-[#dee5f3] text-[#596d97]">
@@ -151,7 +151,7 @@ export default function StepTrainTest({
             所以测验田的{FARM_METAPHOR_LABELS.answerRate}是 {toPercent(confusion.accuracy)}。
           </div>
 
-          <div className="-mx-3 overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white overscroll-x-contain">
             <div className="min-w-[640px] p-3">
               <table className="w-full text-left text-sm">
                 <thead>

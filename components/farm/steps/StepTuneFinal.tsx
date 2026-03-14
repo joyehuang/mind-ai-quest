@@ -172,8 +172,8 @@ export default function StepTuneFinal({
             </div>
 
             {/* 滚动表格 */}
-            <div className="-mx-3 overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white">
-              <div className="min-w-[500px] p-2">
+            <div className="overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white overscroll-x-contain">
+              <div className="min-w-[480px] p-2">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-[#dee5f3] text-[#596d97]">
@@ -333,7 +333,7 @@ export default function StepTuneFinal({
             你给小麦选的技能，会影响它在新稻田里会不会更稳。毕业考答对率越高，说明小麦越会把学到的办法带去新地方使用。
           </div>
 
-          <div className="-mx-3 overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white">
+          <div className="overflow-x-auto rounded-2xl border border-[#d0dbee] bg-white overscroll-x-contain">
             <div className="min-w-[620px] p-3">
               <table className="w-full text-left text-sm">
                 <thead>
