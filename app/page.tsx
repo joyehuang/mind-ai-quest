@@ -81,13 +81,22 @@ function getVideoMimeType(src: string) {
   return "video/mp4";
 }
 
+function normalizeTeacherBase(value: string) {
+  const trimmed = value.trim().replace(/\s+/g, "");
+  if (!trimmed) {
+    return "";
+  }
+
+  return trimmed.replace(/老师$/u, "");
+}
+
 export default function Home() {
   const [scene, setScene] = useState<Scene>("landing");
   const [name, setName] = useState("");
   const [style, setStyle] = useState(STYLE_OPTIONS[0]);
   const [completedFarm, setCompletedFarm] = useState(false);
   const [completedWenshuge, setCompletedWenshuge] = useState(false);
-  const [isNameModalOpen, setIsNameModalOpen] = useState(false);
+  const [isTeacherPromptOpen, setIsTeacherPromptOpen] = useState(false);
   const [isLogoExiting, setIsLogoExiting] = useState(false);
   const [farmEntryOrigin, setFarmEntryOrigin] = useState<"landing" | "select">("landing");
   const onboardingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,7 +104,8 @@ export default function Home() {
   const hasSeenFarmKnowledge = useSyncExternalStore(subscribeFarmKnowledgeSeen, readFarmKnowledgeSeen, () => false);
   const completedCount = Number(completedFarm) + Number(completedWenshuge);
   const progressPercent = (completedCount / 2) * 100;
-  const trimmedName = name.trim();
+  const teacherBaseName = normalizeTeacherBase(name);
+  const teacherName = teacherBaseName ? `${teacherBaseName}老师` : "";
   const homeVideoSources = ["/homepage.mp4"];
 
   useEffect(() => {
@@ -159,13 +169,9 @@ export default function Home() {
     }
   }
 
-  function handleLandingSubmit() {
-    if (!trimmedName) {
-      return;
-    }
-
+  function handleStartOnboarding() {
     clearOnboardingTimeout();
-    setIsNameModalOpen(false);
+    setIsTeacherPromptOpen(false);
     setIsLogoExiting(true);
     onboardingTimeoutRef.current = setTimeout(() => {
       setScene("video");
@@ -174,6 +180,16 @@ export default function Home() {
 
   function handleFinishOnboarding() {
     clearOnboardingTimeout();
+    onboardingVideoRef.current?.pause();
+    setIsTeacherPromptOpen(true);
+  }
+
+  function handleConfirmTeacherName() {
+    if (!teacherBaseName) {
+      return;
+    }
+
+    setIsTeacherPromptOpen(false);
     setFarmEntryOrigin("select");
     setScene("farm");
   }
@@ -181,7 +197,7 @@ export default function Home() {
   function handleReturnToLanding() {
     clearOnboardingTimeout();
     setIsLogoExiting(false);
-    setIsNameModalOpen(false);
+    setIsTeacherPromptOpen(false);
     setScene("landing");
   }
 
@@ -198,7 +214,7 @@ export default function Home() {
   if (scene === "brief-wenshuge") {
     return (
       <div className="min-h-screen w-screen bg-[radial-gradient(circle_at_18%_18%,#f2f4f9_0%,#dee5f4_45%,#b8c8e4_100%)] px-4 py-6 sm:px-6">
-        <div className="mx-auto max-w-5xl space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
           <header className="rounded-3xl border border-[#9eb3d4] bg-[rgba(248,251,255,0.92)] p-5 shadow-[0_16px_36px_rgba(36,62,104,0.14)]">
             <p className="text-xs uppercase tracking-[0.22em] text-[#4c6288]">Story Briefing</p>
             <h1 className="font-display mt-2 text-3xl text-[#21385d]">主题关卡2：文枢阁的健康日记</h1>
@@ -209,7 +225,7 @@ export default function Home() {
 
           <article className="rounded-3xl border border-[#9eb3d4] bg-[rgba(247,251,255,0.94)] p-5 shadow-[0_14px_30px_rgba(34,58,99,0.12)]">
             <p className="text-sm font-semibold text-[#27406b]">
-              {AI_ASSISTANT_TITLE} {trimmedName || "小老师"}：
+              {AI_ASSISTANT_TITLE} {teacherName || "小老师"}：
             </p>
             <p className="mt-2 text-sm leading-7 text-[#35507f]">
               文枢阁保护团队每天都会记录结构与环境数据，但这些数据没有人工标签，系统必须先学会“什么是正常模式”。这次我们要先筛掉无关特征、完成预处理，再通过无监督学习给每一天打异常分数，并通过阈值调优在误检与漏检之间找到平衡。
@@ -243,7 +259,7 @@ export default function Home() {
   if (scene === "farm-reveal") {
     return (
       <FarmKnowledgeReveal
-        playerName={trimmedName}
+        playerName={teacherName}
         certificate={readFarmCertificate()}
         returnLabel={farmEntryOrigin === "landing" ? "返回首页" : "返回游戏主页"}
         onSeen={markFarmKnowledgeSeen}
@@ -256,13 +272,13 @@ export default function Home() {
     return (
       <div className="h-screen w-screen overflow-hidden bg-[#08160d]">
         <FarmQuest
-          playerName={trimmedName || "小老师"}
+          playerName={teacherName || "小老师"}
           playerStyle={style}
           onBack={() => setScene(farmEntryOrigin)}
           onComplete={(summary) => {
             setCompletedFarm(true);
             saveFarmCertificate({
-              playerName: trimmedName || "小老师",
+              playerName: teacherName || "小老师",
               levelName: "关卡1：保护我们的稻田",
               answerRate: summary.answerRate,
               completedAt: summary.completedAt,
@@ -278,7 +294,7 @@ export default function Home() {
     return (
       <div className="h-screen w-screen overflow-hidden bg-[#07131f]">
         <WenshugeQuest
-          playerName={trimmedName || "小老师"}
+          playerName={teacherName || "小老师"}
           playerStyle={style}
           onBack={() => setScene("select")}
           onComplete={() => {
@@ -310,14 +326,70 @@ export default function Home() {
           className="absolute right-4 top-4 rounded-full border border-white/18 bg-black/28 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-black/40"
           onClick={handleFinishOnboarding}
         >
-          跳过
+          跳过视频
         </button>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-4">
           <p className="rounded-full border border-white/12 bg-black/25 px-4 py-2 text-xs tracking-[0.18em] text-white/86 backdrop-blur-md">
-            AI 小当家正在带你进入游戏主页
+            跟着小麦认识这次的任务
           </p>
         </div>
+
+        {isTeacherPromptOpen ? (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[rgba(32,16,6,0.42)] px-4 backdrop-blur-md">
+            <div className="w-full max-w-md rounded-[28px] border border-[#f6ddb2] bg-[linear-gradient(180deg,rgba(255,249,237,0.98)_0%,rgba(255,241,212,0.96)_100%)] p-6 text-[#573111] shadow-[0_26px_70px_rgba(58,25,5,0.24)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9c6630]">Name Card</p>
+                  <h2 className="font-display mt-2 text-3xl text-[#5b340f]">给自己起个名字</h2>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full border border-[#e7c88c] px-3 py-1 text-sm text-[#8a5c29] transition hover:bg-white/55"
+                  onClick={handleReturnToLanding}
+                >
+                  关闭
+                </button>
+              </div>
+
+              <p className="mt-3 text-sm leading-7 text-[#7a4a19]">
+                你就是小麦的老师。确认后，AI 小当家和小麦都会用 <span className="font-semibold text-[#5f3206]">XXX老师</span> 来称呼你。
+              </p>
+
+              <label className="mt-5 block text-sm font-semibold text-[#7a4a19]">
+                你的名字
+                <div className="mt-2 flex items-center overflow-hidden rounded-2xl border-2 border-[#e9cb91] bg-white/82 shadow-inner">
+                  <input
+                    autoFocus
+                    className="h-13 min-w-0 flex-1 bg-transparent px-4 text-base text-[#3f260e] outline-none placeholder:text-[#b18659]"
+                    value={teacherBaseName}
+                    onChange={(event) => setName(normalizeTeacherBase(event.target.value))}
+                    maxLength={12}
+                    placeholder="例如：小麦、阿谷、云朵"
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleConfirmTeacherName();
+                      }
+                    }}
+                  />
+                  <span className="mr-2 rounded-full border border-[#e7c88c] bg-[#fff4df] px-4 py-2 text-sm font-semibold text-[#8a5c29]">
+                    老师
+                  </span>
+                </div>
+              </label>
+
+              <button
+                type="button"
+                className="mt-5 min-h-13 w-full rounded-2xl bg-[linear-gradient(135deg,#ffcb69_0%,#ea8c27_100%)] px-5 text-base font-bold text-[#432208] shadow-[0_16px_30px_rgba(110,55,12,0.28)] transition hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#d4c0a0] disabled:text-[#7c6751]"
+                disabled={!teacherBaseName}
+                onClick={handleConfirmTeacherName}
+              >
+                确认成为{teacherName || "XXX老师"}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -366,62 +438,11 @@ export default function Home() {
           <button
             type="button"
             className="mt-5 min-h-14 min-w-[11.5rem] rounded-full border border-[#ffefc8] bg-[linear-gradient(135deg,#ffe39d_0%,#ffb94a_100%)] px-8 text-lg font-bold text-[#4d2809] shadow-[0_18px_36px_rgba(108,55,15,0.28)] transition hover:scale-[1.02] active:scale-[0.98]"
-            onClick={() => setIsNameModalOpen(true)}
+            onClick={handleStartOnboarding}
           >
             开始游戏
           </button>
         </div>
-
-        {isNameModalOpen ? (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[rgba(32,16,6,0.42)] px-4 backdrop-blur-md">
-            <div className="w-full max-w-md rounded-[28px] border border-[#f6ddb2] bg-[linear-gradient(180deg,rgba(255,249,237,0.98)_0%,rgba(255,241,212,0.96)_100%)] p-6 text-[#573111] shadow-[0_26px_70px_rgba(58,25,5,0.24)]">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9c6630]">Name Card</p>
-                  <h2 className="font-display mt-2 text-3xl text-[#5b340f]">给自己起个名字</h2>
-                </div>
-                <button
-                  type="button"
-                  className="rounded-full border border-[#e7c88c] px-3 py-1 text-sm text-[#8a5c29] transition hover:bg-white/55"
-                  onClick={() => setIsNameModalOpen(false)}
-                >
-                  关闭
-                </button>
-              </div>
-
-              <p className="mt-3 text-sm leading-7 text-[#7a4a19]">
-                确认后，AI 小当家会先向上退场，再播放入场视频。你也可以在视频里直接跳过。
-              </p>
-
-              <label className="mt-5 block text-sm font-semibold text-[#7a4a19]">
-                你的名字
-                <input
-                  autoFocus
-                  className="mt-2 h-13 w-full rounded-2xl border-2 border-[#e9cb91] bg-white/82 px-4 text-base text-[#3f260e] shadow-inner outline-none transition focus:border-[#d88c2e]"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  maxLength={12}
-                  placeholder="例如：小麦、阿谷、云朵"
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      handleLandingSubmit();
-                    }
-                  }}
-                />
-              </label>
-
-              <button
-                type="button"
-                className="mt-5 min-h-13 w-full rounded-2xl bg-[linear-gradient(135deg,#ffcb69_0%,#ea8c27_100%)] px-5 text-base font-bold text-[#432208] shadow-[0_16px_30px_rgba(110,55,12,0.28)] transition hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#d4c0a0] disabled:text-[#7c6751]"
-                disabled={!trimmedName}
-                onClick={handleLandingSubmit}
-              >
-                确认并进入开场
-              </button>
-            </div>
-          </div>
-        ) : null}
       </div>
     );
   }
@@ -448,7 +469,7 @@ export default function Home() {
       <div className="pointer-events-auto absolute right-4 top-4 w-[min(90vw,340px)] rounded-3xl border border-[rgba(255,255,255,0.14)] bg-[rgba(14,13,11,0.5)] p-4 text-[#f7efe2] backdrop-blur-md">
         <p className="text-xs uppercase tracking-[0.22em] text-[#d6c2a1]">Game Home</p>
         <p className="mt-1 text-lg font-semibold text-[#faf2e6]">
-          {trimmedName || "小队成员"} <span className="text-sm font-medium text-[#d9c8af]">· {style}</span>
+          {teacherName || "小老师"} <span className="text-sm font-medium text-[#d9c8af]">· {style}</span>
         </p>
 
         <div className="mt-3">
