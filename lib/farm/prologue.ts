@@ -105,7 +105,7 @@ export function createFarmProloguePanels(playerName: string): FarmProloguePanel[
       eyebrow: "第 6 幕",
       title: "出发吧，老师",
       narration: "开始教小麦！",
-      aside: "第一块田已经准备好了。先挑教材，再一步步把分辨方法讲给小麦听。",
+      aside: "练习田已经准备好了。先挑教材，再一步步把分辨方法讲给小麦听。",
       bubble: `${teacherName}老师，第一课就从这片田开始。`,
       imageSrc: "/images_game-bg.png",
       imageAlt: "准备开始教学的稻田",

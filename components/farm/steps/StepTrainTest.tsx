@@ -32,12 +32,12 @@ export default function StepTrainTest({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#b9cae8] bg-[#eef3ff] p-4">
-        <p className="text-sm font-semibold text-[#274067]">第三步：教小麦先做第二块田小测验</p>
+        <p className="text-sm font-semibold text-[#274067]">第三步：小麦复习并参加测验</p>
         <p className="mt-1 text-xs text-[#576a92]">
-          第二步贴答案贴纸的答对率：{toPercent(step2Score)}（还有 {step2Errors} 题没贴对）
+          第二步贴答案标签的答对率：{toPercent(step2Score)}（还有 {step2Errors} 题没贴对）
         </p>
         <p className="mt-1 text-xs text-[#576a92]">
-          {FARM_METAPHOR_LABELS.textbookReadiness}：{toPercent(trainingSetQuality)}。教材越丰富，小麦做小测验时越不容易发懵。
+          {FARM_METAPHOR_LABELS.textbookReadiness}：{toPercent(trainingSetQuality)}。教材越丰富，小麦在测验田里越不容易发懵。
         </p>
 
         <div className="mt-3 h-4 rounded-full bg-[#d8e2f4] p-1">
@@ -53,7 +53,7 @@ export default function StepTrainTest({
         <>
           <div className="grid gap-3 sm:grid-cols-3">
             <article className="rounded-2xl border border-[#d0dbee] bg-white p-4">
-              <p className="text-xs text-[#63749a]">第二块田答对率</p>
+              <p className="text-xs text-[#63749a]">测验田答对率</p>
               <p className="mt-1 text-2xl font-semibold text-[#2c4f86]">{toPercent(confusion.accuracy)}</p>
             </article>
             <article className="rounded-2xl border border-[#d0dbee] bg-white p-4">
@@ -68,7 +68,7 @@ export default function StepTrainTest({
 
           <div className="rounded-2xl border border-[#d0dbef] bg-[#f4f7ff] p-4 text-sm text-[#364975]">
             这次小麦一共猜对了 {predictions.filter((item) => item.correct).length} 株稻子，共有 {predictions.length} 株，
-            所以第二块田的{FARM_METAPHOR_LABELS.answerRate}是 {toPercent(confusion.accuracy)}。
+            所以测验田的{FARM_METAPHOR_LABELS.answerRate}是 {toPercent(confusion.accuracy)}。
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-[#d0dbef] bg-white p-3">
@@ -96,7 +96,7 @@ export default function StepTrainTest({
         </>
       ) : (
         <p className="rounded-xl border border-[#cdd9ee] bg-white px-3 py-3 text-sm text-[#44567f]">
-          小麦正在翻看第一块田的练习题，复习结束后就会自动展示第二块田的小测验成绩。
+          小麦正在翻看练习田的教材，复习结束后就会自动展示测验田的小测验成绩。
         </p>
       )}
     </div>

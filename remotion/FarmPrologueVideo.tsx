@@ -84,7 +84,7 @@ const SCENES = [
     title: "出发吧，老师",
     eyebrow: "第 6 幕",
     narration: "开始教小麦！",
-    aside: "第一块田已经准备好了。先挑教材，再一步步把分辨方法讲给小麦听。",
+    aside: "练习田已经准备好了。先挑教材，再一步步把分辨方法讲给小麦听。",
     bubble: "老师，第一课就从这片田开始。",
     image: "/images_game-bg.png",
     imagePosition: "center 55%",
