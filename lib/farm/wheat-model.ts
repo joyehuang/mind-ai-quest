@@ -7,7 +7,7 @@ export interface WheatModel {
   height: number;
 }
 
-export const WHEAT_MODEL_PATHS = ["/wheet.glb"] as const;
+export const WHEAT_MODEL_PATHS = ["https://bear-public.tos-cn-shanghai.volces.com/wheet.glb"] as const;
 
 let wheatModelPromise: Promise<WheatModel | null> | null = null;
 

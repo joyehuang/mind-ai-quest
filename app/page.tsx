@@ -318,7 +318,7 @@ export default function Home() {
           preload="auto"
           onEnded={handleFinishOnboarding}
         >
-          <source src="/onboard-video.mp4" type="video/mp4" />
+          <source src="https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" type="video/mp4" />
         </video>
 
         <button
@@ -418,7 +418,7 @@ export default function Home() {
             }
           >
             <Image
-              src="/logo.png"
+              src="https://bear-public.tos-cn-shanghai.volces.com/logo.png"
               alt="AI小当家"
               width={860}
               height={360}

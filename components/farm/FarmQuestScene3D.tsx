@@ -57,7 +57,7 @@ interface PlantAppearance {
   damageSpotCount: number;
 }
 
-const FARM_BG_IMAGE_SRC = "/fram-image-bg-v2.webp";
+const FARM_BG_IMAGE_SRC = "https://bear-public.tos-cn-shanghai.volces.com/fram-image-bg-v2.webp";
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
   A: {
