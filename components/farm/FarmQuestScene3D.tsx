@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { Clone, OrbitControls } from "@react-three/drei";
+import { Clone, Html, OrbitControls } from "@react-three/drei";
 import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -80,8 +80,8 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
     width: 2.9,
     depth: 2.9,
     columns: 5,
-    spacingX: 0.56,
-    spacingZ: 0.62,
+    spacingX: 0.67,
+    spacingZ: 0.74,
     startZ: -1.05,
   },
   B: {
@@ -89,8 +89,8 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
     width: 2.3,
     depth: 2.4,
     columns: 4,
-    spacingX: 0.56,
-    spacingZ: 0.62,
+    spacingX: 0.67,
+    spacingZ: 0.74,
     startZ: -0.85,
   },
   C: {
@@ -98,13 +98,13 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
     width: 2.3,
     depth: 2.4,
     columns: 4,
-    spacingX: 0.56,
-    spacingZ: 0.62,
+    spacingX: 0.67,
+    spacingZ: 0.74,
     startZ: -0.85,
   },
 };
-const FIELD_RENDER_SCALE = 0.86;
-const PLANT_SCALE_FACTOR = 2;
+const FIELD_RENDER_SCALE = 1.376;
+const PLANT_SCALE_FACTOR = 2.4;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -344,6 +344,7 @@ function RicePlant({
   liteMode,
   model,
   position,
+  hovered,
   onHover,
   onSelect,
 }: {
@@ -355,6 +356,7 @@ function RicePlant({
   liteMode: boolean;
   model: WheatModel | null;
   position: [number, number, number];
+  hovered: boolean;
   onHover: () => void;
   onSelect: () => void;
 }) {
@@ -482,6 +484,24 @@ function RicePlant({
           </mesh>
         </>
       )}
+
+      {hovered && (
+        <Html
+          position={[0, appearance.stemHeight + 0.15, 0]}
+          center
+          distanceFactor={50}
+          zIndexRange={[100, 0]}
+          style={{ pointerEvents: "none" }}
+        >
+          <div className="rounded border border-[#4c5e84] bg-[rgba(17,27,48,0.94)] px-1 py-0.5 text-[2px] text-[#d7e3ff] shadow-lg max-w-[80px] leading-[2px] whitespace-nowrap">
+            <p className="font-semibold">候选稻种 #{sample.id.slice(-3)}</p>
+            <p>叶子：{sample.profile.leaf}</p>
+            <p>稻杆：{sample.profile.stem}</p>
+            <p>虫害：{sample.profile.pest}</p>
+            <p>稻穗：{sample.profile.panicle}</p>
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
@@ -562,6 +582,7 @@ export default function FarmQuestScene3D({
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
+                hovered={hoveredSampleId === item.sample.id}
                 onHover={() => onHoverSample(item.sample.id)}
                 onSelect={() => onSelectSample(item.sample.id)}
               />
@@ -595,6 +616,7 @@ export default function FarmQuestScene3D({
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
+                hovered={hoveredSampleId === item.sample.id}
                 onHover={() => onHoverSample(item.sample.id)}
                 onSelect={() => onSelectSample(item.sample.id)}
               />
@@ -617,6 +639,7 @@ export default function FarmQuestScene3D({
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
+                hovered={hoveredSampleId === item.sample.id}
                 onHover={() => onHoverSample(item.sample.id)}
                 onSelect={() => onSelectSample(item.sample.id)}
               />
@@ -760,26 +783,6 @@ export default function FarmQuestScene3D({
           }`}
         >
           {liteMode ? "轻量模式" : "标准模式"}
-        </div>
-      )}
-
-      {showHoverCard && hoveredSample && (
-        <div
-          className={`pointer-events-none absolute bottom-3 right-3 min-w-[260px] rounded-lg border px-3 py-2 text-xs shadow-lg ${
-            immersive
-              ? "border-[#4c5e84] bg-[rgba(17,27,48,0.9)] text-[#d7e3ff]"
-              : "border-[#d1dcec] bg-[rgba(255,255,255,0.96)] text-[#364b74]"
-          }`}
-        >
-          <p className="font-semibold">{hoveredSample.name}</p>
-          <p className="mt-1">叶子：{hoveredSample.profile.leaf}</p>
-          <p>稻秆：{hoveredSample.profile.stem}</p>
-          <p>小稻秆：{hoveredSample.profile.tiller}</p>
-          <p>虫害：{hoveredSample.profile.pest}</p>
-          <p>稻穗：{hoveredSample.profile.panicle}</p>
-          <p className={`mt-1 font-semibold ${immersive ? "text-[#aecaef]" : "text-[#2d4775]"}`}>
-            {collectedIds.includes(hoveredSample.id) ? "点击可放回教材篮" : "点击可放进教材篮"}
-          </p>
         </div>
       )}
     </div>

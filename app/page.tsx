@@ -291,12 +291,7 @@ export default function Home() {
       {scene === "landing" && (
         <>
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
-            <div className="pointer-events-auto w-full max-w-2xl rounded-[32px] border border-[rgba(255,237,201,0.9)] bg-[linear-gradient(145deg,rgba(255,253,246,0.95)_0%,rgba(253,238,205,0.92)_100%)] p-6 text-center text-[#4d3416] shadow-[0_18px_40px_rgba(38,26,12,0.24)] backdrop-blur-md sm:p-8">
-              <div className="flex flex-wrap justify-center gap-2 text-[11px]">
-                <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">中小学生友好</span>
-                <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">3-5 分钟一局</span>
-                <span className="rounded-full border border-[#e8c98b] bg-[#fff5df] px-3 py-1 text-[#865a23]">边玩边学聪明办法</span>
-              </div>
+            <div className="pointer-events-auto w-full max-w-2xl animate-[fadeInScale_0.8s_ease-out] rounded-[32px] border border-[rgba(255,237,201,0.9)] bg-[linear-gradient(145deg,rgba(255,253,246,0.95)_0%,rgba(253,238,205,0.92)_100%)] p-6 text-center text-[#4d3416] shadow-[0_18px_40px_rgba(38,26,12,0.24)] backdrop-blur-md sm:p-8">
               <h2 className="font-display mt-4 text-4xl leading-tight text-[#5b3e16] sm:text-5xl">
                 一起成为 AI 小当家
               </h2>
@@ -306,7 +301,7 @@ export default function Home() {
               <label className="mx-auto mt-5 block max-w-xl text-left text-sm font-semibold text-[#7a5525]">
                 你的名字
                 <input
-                  className="mt-2 h-12 w-full rounded-2xl border-2 border-[#e6c98f] bg-[#fffaf0] px-4 text-base text-[#3b2d1d] shadow-inner outline-none transition focus:border-[#ca8f3c]"
+                  className="mt-2 h-16 w-full rounded-2xl border-2 border-[#e6c98f] bg-[#fffaf0] px-5 text-lg text-[#3b2d1d] shadow-inner outline-none transition focus:border-[#ca8f3c]"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   maxLength={12}
@@ -315,7 +310,6 @@ export default function Home() {
               </label>
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-[#87602e]">
                 <span className="rounded-full bg-[#f8e3bb] px-3 py-1">当前开放：关卡1</span>
-                <span className="rounded-full bg-[#f2e8d6] px-3 py-1 text-[#8d7a5a]">关卡2 敬请期待</span>
               </div>
               <button
                 type="button"
@@ -323,7 +317,7 @@ export default function Home() {
                 disabled={!trimmedName}
                 onClick={() => handleEnterFarm({ origin: "landing" })}
               >
-                {hasSeenFarmPrologue ? "直接进入关卡1" : "开始闯关"}
+                开始游戏
               </button>
               {hasSeenFarmPrologue ? (
                 <button
