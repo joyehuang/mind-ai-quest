@@ -58,6 +58,46 @@ body {
   }
 }
 
+@keyframes landing-logo-drop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -36vh, 0) scale(0.9);
+  }
+  62% {
+    opacity: 1;
+    transform: translate3d(0, 18px, 0) scale(1.04);
+  }
+  78% {
+    transform: translate3d(0, -10px, 0) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes landing-logo-exit {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -34vh, 0) scale(0.88);
+  }
+}
+
+@keyframes landing-cta-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 button,
 input,
 select {

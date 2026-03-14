@@ -41,6 +41,9 @@ const remotePatterns = buildRemotePatterns();
 
 const nextConfig: NextConfig = {
   images: { remotePatterns },
+  turbopack: {
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;

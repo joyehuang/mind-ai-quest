@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 
+import Script from "next/script";
+
+
 const bodyFont = Nunito({
   variable: "--font-body",
   weight: ["400", "500", "600", "700"],
@@ -26,6 +29,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
       <body className={`${bodyFont.variable} ${displayFont.variable} antialiased`}>
         {children}
       </body>

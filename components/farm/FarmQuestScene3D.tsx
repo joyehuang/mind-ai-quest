@@ -4,8 +4,8 @@ import { Clone, OrbitControls } from "@react-three/drei";
 import { Canvas, type ThreeEvent, useFrame } from "@react-three/fiber";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box3, Mesh, Object3D, Vector3 } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Mesh } from "three";
+import { loadWheatModel, type WheatModel } from "@/lib/farm/wheat-model";
 import type { FarmSample, ModelJudgment, PredictionRecord, RiceLabel } from "@/lib/farm/types";
 
 interface FarmQuestScene3DProps {
@@ -57,22 +57,7 @@ interface PlantAppearance {
   damageSpotCount: number;
 }
 
-interface WheatModel {
-  object: Object3D;
-  minY: number;
-  height: number;
-}
-
-const WHEAT_MODEL_PATHS = ["/wheet.glb"];
-const FARM_BG_IMAGE_PATHS = [
-  "/images_game-bg.png",
-  "/image-game-bg.png",
-  "/image-game-bg.jpg",
-  "/images/game-bg.png",
-  "/images/game-bg.jpg",
-  "/images/game-bg.jpeg",
-  "/images/game-bg.webp",
-];
+const FARM_BG_IMAGE_SRC = "/fram-image-bg-v2.webp";
 
 const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
   A: {
@@ -105,6 +90,7 @@ const FIELD_LAYOUT: Record<"A" | "B" | "C", FieldLayout> = {
 };
 const FIELD_RENDER_SCALE = 0.86;
 const PLANT_SCALE_FACTOR = 2;
+const SHOW_ADJACENT_FIELDS = false;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -276,61 +262,25 @@ function SelectionPulse({
   );
 }
 
-function useWheatModel(modelPaths: string[]) {
+function useWheatModel() {
   const [model, setModel] = useState<WheatModel | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let canceled = false;
-    const loader = new GLTFLoader();
-
-    const tryLoad = (index: number) => {
-      if (index >= modelPaths.length) {
-        if (!canceled) {
-          setLoaded(true);
-          setModel(null);
-        }
+    loadWheatModel().then((nextModel) => {
+      if (canceled) {
         return;
       }
 
-      loader.load(
-        modelPaths[index],
-        (gltf) => {
-          if (canceled) {
-            return;
-          }
-
-          const scene = gltf.scene ?? gltf.scenes?.[0];
-          if (!scene) {
-            tryLoad(index + 1);
-            return;
-          }
-
-          scene.updateWorldMatrix(true, true);
-          const bounds = new Box3().setFromObject(scene);
-          const size = new Vector3();
-          bounds.getSize(size);
-
-          setModel({
-            object: scene,
-            minY: bounds.min.y,
-            height: Math.max(size.y, 0.001),
-          });
-          setLoaded(true);
-        },
-        undefined,
-        () => {
-          tryLoad(index + 1);
-        },
-      );
-    };
-
-    tryLoad(0);
+      setModel(nextModel);
+      setLoaded(true);
+    });
 
     return () => {
       canceled = true;
     };
-  }, [modelPaths]);
+  }, []);
 
   return { model, loaded };
 }
@@ -525,18 +475,16 @@ export default function FarmQuestScene3D({
     [fieldCPredictions],
   );
 
-  const activeField = stepIndex <= 1 ? "A" : stepIndex <= 3 ? "B" : "C";
-  const cameraFocusX = FIELD_LAYOUT[activeField].centerX * FIELD_RENDER_SCALE;
+  const logicalActiveField = stepIndex <= 1 ? "A" : stepIndex <= 3 ? "B" : "C";
+  const sceneActiveField = SHOW_ADJACENT_FIELDS ? logicalActiveField : "A";
+  const visibleFieldKeys = SHOW_ADJACENT_FIELDS ? (["A", "B", "C"] as const) : (["A"] as const);
+  const cameraFocusX = FIELD_LAYOUT[sceneActiveField].centerX * FIELD_RENDER_SCALE;
   const hoveredSample = hoveredSampleId ? sampleById[hoveredSampleId] ?? null : null;
   const enableDetailedModel = !liteMode;
-  const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel(WHEAT_MODEL_PATHS);
-  const [backgroundImageIndex, setBackgroundImageIndex] = useState(0);
-  const backgroundImageSrc =
-    FARM_BG_IMAGE_PATHS[Math.min(backgroundImageIndex, FARM_BG_IMAGE_PATHS.length - 1)] ?? FARM_BG_IMAGE_PATHS[0];
-
+  const { model: wheatModel, loaded: wheatModelLoaded } = useWheatModel();
   const showFieldAPlants = true;
-  const showFieldBPlants = stepIndex >= 2;
-  const showFieldCPlants = stepIndex >= 4;
+  const showFieldBPlants = SHOW_ADJACENT_FIELDS && stepIndex >= 2;
+  const showFieldCPlants = SHOW_ADJACENT_FIELDS && stepIndex >= 4;
 
   function renderPlantMeshes(model: WheatModel | null, useLitePlants: boolean) {
     return (
@@ -558,7 +506,7 @@ export default function FarmQuestScene3D({
                 markerColor={markerColor}
                 collected={collected}
                 selected={activeSampleId === item.sample.id}
-                dimmed={activeField !== "A"}
+                dimmed={sceneActiveField !== "A"}
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
@@ -591,7 +539,7 @@ export default function FarmQuestScene3D({
                 markerColor={markerColor}
                 collected={false}
                 selected={activeSampleId === item.sample.id}
-                dimmed={activeField !== "B"}
+                dimmed={sceneActiveField !== "B"}
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
@@ -613,7 +561,7 @@ export default function FarmQuestScene3D({
                 markerColor={markerColor}
                 collected={false}
                 selected={activeSampleId === item.sample.id}
-                dimmed={activeField !== "C"}
+                dimmed={sceneActiveField !== "C"}
                 liteMode={useLitePlants}
                 model={model}
                 position={item.position}
@@ -636,21 +584,16 @@ export default function FarmQuestScene3D({
       onPointerLeave={() => onHoverSample(null)}
     >
       <Image
-        src={backgroundImageSrc}
+        src={FARM_BG_IMAGE_SRC}
         alt=""
         fill
         sizes="100vw"
         priority
         className="pointer-events-none absolute inset-0 object-cover"
-        onError={() =>
-          setBackgroundImageIndex((current) =>
-            current < FARM_BG_IMAGE_PATHS.length - 1 ? current + 1 : current,
-          )
-        }
       />
 
       <Canvas
-        key={`field-focus-${activeField}-${liteMode ? "lite" : "std"}`}
+        key={`field-focus-${sceneActiveField}-${liteMode ? "lite" : "std"}`}
         dpr={liteMode ? [1, 1.2] : [1, 1.8]}
         shadows={!liteMode}
         gl={{ antialias: !liteMode, powerPreference: "high-performance", alpha: true }}
@@ -673,19 +616,18 @@ export default function FarmQuestScene3D({
             <meshStandardMaterial color="#b8a780" transparent opacity={0} depthWrite={false} />
           </mesh>
 
-          {(["A", "B", "C"] as const).map((field) => {
-            const active = activeField === field;
+          {visibleFieldKeys.map((field) => {
+            const active = sceneActiveField === field;
             const layout = FIELD_LAYOUT[field];
-            const visible = field === "A" || (field === "B" && stepIndex >= 2) || (field === "C" && stepIndex >= 4);
 
             return (
               <mesh key={field} position={[layout.centerX, -0.02, 0]} receiveShadow={!liteMode}>
                 <boxGeometry args={[layout.width, 0.05, layout.depth]} />
                 <meshStandardMaterial
                   color={active ? "#9ab66f" : "#b49d73"}
-                  transparent={!visible}
-                  opacity={visible ? 1 : 0.38}
-                  depthWrite={visible}
+                  transparent={false}
+                  opacity={1}
+                  depthWrite
                 />
               </mesh>
             );
@@ -711,7 +653,7 @@ export default function FarmQuestScene3D({
         <div className="pointer-events-none absolute left-3 top-3 flex gap-2 text-[11px]">
           <span
             className={`rounded-full border px-2 py-0.5 ${
-              activeField === "A"
+              sceneActiveField === "A"
                 ? immersive
                   ? "border-[#6f86b7] bg-[rgba(20,31,55,0.84)] text-[#d4e2ff]"
                   : "border-[#a7bbdf] bg-[#edf2ff] text-[#2a3f68]"
@@ -721,32 +663,6 @@ export default function FarmQuestScene3D({
             }`}
           >
             第一块田
-          </span>
-          <span
-            className={`rounded-full border px-2 py-0.5 ${
-              activeField === "B"
-                ? immersive
-                  ? "border-[#6f86b7] bg-[rgba(20,31,55,0.84)] text-[#d4e2ff]"
-                  : "border-[#a7bbdf] bg-[#edf2ff] text-[#2a3f68]"
-                : immersive
-                  ? "border-[#4d5b7d] bg-[rgba(14,22,40,0.76)] text-[#9baccf]"
-                  : "border-[#d3dced] bg-white text-[#6a7591]"
-            }`}
-          >
-            第二块田
-          </span>
-          <span
-            className={`rounded-full border px-2 py-0.5 ${
-              activeField === "C"
-                ? immersive
-                  ? "border-[#6f86b7] bg-[rgba(20,31,55,0.84)] text-[#d4e2ff]"
-                  : "border-[#a7bbdf] bg-[#edf2ff] text-[#2a3f68]"
-                : immersive
-                  ? "border-[#4d5b7d] bg-[rgba(14,22,40,0.76)] text-[#9baccf]"
-                  : "border-[#d3dced] bg-white text-[#6a7591]"
-            }`}
-          >
-            第三块田
           </span>
         </div>
       )}
