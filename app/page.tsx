@@ -11,6 +11,7 @@ import {
   type FarmCertificateSnapshot,
 } from "@/lib/farm/terminology";
 import { preloadWheatModel } from "@/lib/farm/wheat-model";
+import { useOrientation } from "@/components/hooks";
 
 type Scene =
   | "landing"
@@ -107,6 +108,8 @@ export default function Home() {
   const teacherBaseName = normalizeTeacherBase(name);
   const teacherName = teacherBaseName ? `${teacherBaseName}老师` : "";
   const homeVideoSources = ["/homepage.mp4"];
+  // 根据屏幕方向选择不同的资源
+  const { isPortrait } = useOrientation();
 
   useEffect(() => {
     return () => {
@@ -318,7 +321,7 @@ export default function Home() {
           preload="auto"
           onEnded={handleFinishOnboarding}
         >
-          <source src="https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" type="video/mp4" />
+          <source src={isPortrait === null ? "https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" : (isPortrait ? "https://bear-public.tos-cn-shanghai.volces.com/onboard-video.mp4" : "https://bear-public.tos-cn-shanghai.volces.com/onboard-video-landscape.mp4")} type="video/mp4" />
         </video>
 
         <button
@@ -422,7 +425,7 @@ export default function Home() {
     return (
       <div className="relative h-screen w-screen overflow-hidden">
         <Image
-          src="/bg-img-v2.webp"
+          src={isPortrait === null ? "/bg-img-v2.webp" : (isPortrait ? "/bg-img-v2.webp" : "https://bear-public.tos-cn-shanghai.volces.com/landing-background-landscape.png")}
           alt="AI小当家开场背景"
           fill
           priority
@@ -433,7 +436,9 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,245,222,0.58)_0%,rgba(255,245,222,0)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(26,11,2,0)_0%,rgba(26,11,2,0.12)_30%,rgba(26,11,2,0.48)_100%)]" />
 
-        <div className="absolute left-1/2 top-0 z-10 w-[58%] max-w-[272px] -translate-x-1/2">
+        <div className={`absolute left-1/2 top-0 z-10 -translate-x-1/2 ${
+                isPortrait === null ? "w-[58%] max-w-[272px]" : (isPortrait ? "w-[58%] max-w-[272px]" : "w-[75%] max-w-[354px]")
+              }`}>
           <div
             className={
               isLogoExiting
@@ -447,13 +452,15 @@ export default function Home() {
               width={860}
               height={360}
               priority
-              className="h-auto w-full drop-shadow-[0_22px_26px_rgba(86,46,15,0.3)]"
+              className={`h-auto drop-shadow-[0_22px_26px_rgba(86,46,15,0.3)] ${
+                isPortrait === null ? "w-full" : (isPortrait ? "w-full" : "w-[130%]")
+              }`}
             />
           </div>
         </div>
 
         <div
-          className={`absolute inset-x-6 top-[52%] z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
+          className={`absolute inset-x-6 isPortrait === null ? "top-[52%]" : (isPortrait ? "top-[52%]" : "top-[68%]") z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
             isLogoExiting
               ? "translate-y-5 opacity-0"
               : "animate-[landing-cta-rise_0.9s_ease_0.48s_both]"
@@ -469,7 +476,9 @@ export default function Home() {
               alt="开始游戏"
               width={2352}
               height={1568}
-              className="h-auto w-auto scale-[0.4] drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)]"
+              className={`h-auto w-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.25)] ${
+                isPortrait === null ? "scale-[0.4]" : (isPortrait ? "scale-[0.4]" : "scale-[0.2]")
+              }`}
               priority
             />
           </button>

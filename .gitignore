@@ -43,3 +43,7 @@ next-env.d.ts
 
 # exclude large local model binary for cloud git
 /public/models/wheet.glb
+
+# Large landscape assets (use cloud storage)
+onboard-video-landscape.mp4
+landing-background-landscape.png
