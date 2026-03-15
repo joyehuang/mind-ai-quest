@@ -464,7 +464,7 @@ export default function Home() {
         </div>
 
         <div
-          className={`absolute inset-x-6 isPortrait === null ? "top-[52%]" : (isPortrait ? "top-[52%]" : "top-[68%]") z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
+          className={`absolute inset-x-6 ${isPortrait === null ? "top-[52%]" : (isPortrait ? "top-[65%]" : "top-[68%]")} z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
             isLogoExiting
               ? "translate-y-5 opacity-0"
               : "animate-[landing-cta-rise_0.9s_ease_0.48s_both]"
