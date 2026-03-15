@@ -12,6 +12,7 @@ import {
 } from "@/lib/farm/terminology";
 import { preloadWheatModel } from "@/lib/farm/wheat-model";
 import { useOrientation } from "@/components/hooks";
+import { useMobile } from "@/components/hooks/useMobile";
 
 type Scene =
   | "landing"
@@ -110,6 +111,7 @@ export default function Home() {
   const homeVideoSources = ["/homepage.mp4"];
   // 根据屏幕方向选择不同的资源
   const { isPortrait } = useOrientation();
+  const { isMobile } = useMobile();
 
   useEffect(() => {
     return () => {
@@ -426,6 +428,14 @@ export default function Home() {
   }
 
   if (scene === "landing") {
+    const ctaPositionClass = isMobile
+      ? isPortrait === null
+        ? "top-[52%]"
+        : isPortrait
+          ? "top-[65%]"
+          : "top-[68%]"
+      : "top-1/2 -translate-y-1/2";
+
     return (
       <div className="relative h-screen w-screen overflow-hidden">
         <Image
@@ -464,7 +474,7 @@ export default function Home() {
         </div>
 
         <div
-          className={`absolute inset-x-6 ${isPortrait === null ? "top-[52%]" : (isPortrait ? "top-[65%]" : "top-[68%]")} z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
+          className={`absolute inset-x-6 ${ctaPositionClass} z-10 flex flex-col items-center transition-all duration-300 sm:inset-x-8 ${
             isLogoExiting
               ? "translate-y-5 opacity-0"
               : "animate-[landing-cta-rise_0.9s_ease_0.48s_both]"
