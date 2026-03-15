@@ -321,7 +321,7 @@ export default function Home() {
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           playsInline
-          muted
+          volume={1}
           preload="auto"
           onEnded={handleFinishOnboarding}
         >
