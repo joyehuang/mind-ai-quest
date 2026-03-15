@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "mind-ai-quest-frontend",
       script: "npm",
-      args: "start",
+      args: "start -- --port 3000",
       cwd: "/root/mind-ai-quest",
       instances: 1,
       autorestart: true,

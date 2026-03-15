@@ -310,14 +310,18 @@ export default function Home() {
   }
 
   if (scene === "video") {
+    // 强制在方向改变时重新加载视频
+    const videoKey = isPortrait === null ? 'initial' : (isPortrait ? 'portrait' : 'landscape');
+    
     return (
       <div className="relative h-screen w-screen overflow-hidden bg-black">
         <video
+          key={videoKey}
           ref={onboardingVideoRef}
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           playsInline
-          volume={1}
+          muted
           preload="auto"
           onEnded={handleFinishOnboarding}
         >
