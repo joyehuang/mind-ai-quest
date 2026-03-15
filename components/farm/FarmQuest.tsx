@@ -204,7 +204,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     finalResult,
   ]);
 
-  function resetQuest() {
+function resetQuest() {
     if (hoverLeaveTimerRef.current) {
       clearTimeout(hoverLeaveTimerRef.current);
       hoverLeaveTimerRef.current = null;
@@ -223,6 +223,19 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
     setFinalResult(null);
     setAssistantOverride(null);
     setActiveTuneHint(null);
+  }
+
+  function pickRandomTrainingSamples() {
+    const shuffled = [...FIELD_A_SAMPLES].sort(() => Math.random() - 0.5);
+    const nextIds = shuffled
+      .slice(0, Math.min(TRAINING_TARGET, shuffled.length))
+      .map((sample) => sample.id);
+
+    setCollectedIds(nextIds);
+    setLabels({});
+    setActiveSampleId(nextIds[0] ?? FIELD_A_SAMPLES[0]?.id ?? null);
+    setHoveredSampleId(null);
+    setCollectMessage(`已随机挑好 ${nextIds.length} 株教材，你可以继续手动调整，或者直接进入下一步。`);
   }
 
   function toggleCollect(sampleId: string) {
@@ -531,6 +544,15 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
             {collectMessage && (
               <p className="mt-1 text-[10px] text-[#8b6914]">{collectMessage}</p>
             )}
+            {step === 0 && (
+              <button
+                type="button"
+                className="mt-2 w-full rounded-full border border-[#e7c88c] bg-[#fff4df] px-3 py-2 text-[11px] font-semibold text-[#8a5c29] transition hover:bg-[#fff7ea] active:scale-[0.99]"
+                onClick={pickRandomTrainingSamples}
+              >
+                一键随机选 10 株
+              </button>
+            )}
           </div>
         ) : (
           <div
@@ -556,6 +578,13 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
                   教材进度：{collectedIds.length}/{TRAINING_TARGET}
                 </p>
                 {collectMessage && <p className="mt-1 text-[#8b6914] md:text-[10px] text-[8px]">{collectMessage}</p>}
+                <button
+                  type="button"
+                  className="mt-2 w-full rounded-full border border-[#e7c88c] bg-[#fff4df] px-3 py-2 text-[11px] font-semibold text-[#8a5c29] transition hover:bg-[#fff7ea] active:scale-[0.99]"
+                  onClick={pickRandomTrainingSamples}
+                >
+                  一键随机选 10 株
+                </button>
               </>
             )}
           </div>
