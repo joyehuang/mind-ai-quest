@@ -537,11 +537,11 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
             className="pointer-events-auto absolute left-3 top-3 origin-top-left rounded-2xl border border-[#ffd700] bg-[rgba(255,255,240,0.98)] text-[#4a3728] backdrop-blur-md w-[min(86vw,340px)] scale-[1.2] px-3 py-2"
           >
             <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b6914]">Farm Quest</p>
-            <p className="font-display mt-1 md:text-base text-xs">主题关卡1：保护我们的稻田</p>
-            <p className="mt-1 text-[#7a5a1f] md:text-[11px] text-[9px]">
+            <p className="font-display mt-1 text-sm">主题关卡1：保护我们的稻田</p>
+            <p className="mt-1 text-[#7a5a1f] text-xs">
               第 {step + 1} 步 / 共 {FARM_STEPS.length} 步 · {FARM_STEPS[step]}
             </p>
-            <p className="mt-1 text-[#7a5a1f] md:text-[11px] text-[9px]">
+            <p className="mt-1 text-[#7a5a1f] text-xs">
               {playerName}（{playerStyle}）
             </p>
             {step === 0 && (
@@ -552,7 +552,7 @@ export default function FarmQuest({ playerName, playerStyle, onBack, onComplete 
                     style={{ width: `${Math.min((collectedIds.length / TRAINING_TARGET) * 100, 100)}%` }}
                   />
                 </div>
-                <p className="mt-1 text-[#7a5a1f] md:text-[11px] text-[9px]">
+                <p className="mt-1 text-[#7a5a1f] md:text-xs">
                   教材进度：{collectedIds.length}/{TRAINING_TARGET}
                 </p>
                 {collectMessage && <p className="mt-1 text-[#8b6914] md:text-[10px] text-[8px]">{collectMessage}</p>}
